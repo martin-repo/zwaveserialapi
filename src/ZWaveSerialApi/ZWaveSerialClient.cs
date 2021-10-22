@@ -44,9 +44,11 @@ namespace ZWaveSerialApi
             _port.DataFrameReceived += OnDataFrameReceived;
 
             _commandClasses = CreateCommandClasses();
+
+            NodeId = GetNodeId();
         }
 
-        public byte NodeId => 1;
+        public byte NodeId { get; }
 
         public T GetCommandClass<T>()
             where T : CommandClass
@@ -169,6 +171,18 @@ namespace ZWaveSerialApi
                 Attempts,
                 _networkTimeout,
                 _retryDelay);
+        }
+
+        private byte GetNodeId()
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(_networkTimeout);
+            var (success, nodeId) = GetSucNodeIdAsync(cancellationTokenSource.Token).Result;
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to read node id");
+            }
+
+            return nodeId;
         }
 
         private void OnDataFrameReceived(object? sender, DataFrameEventArgs eventArgs)
