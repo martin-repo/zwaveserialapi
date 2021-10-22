@@ -12,32 +12,19 @@ namespace ZWaveSerialApi.Devices.Aeotec
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
-    using ZWaveSerialApi.CommandClasses.Management.WakeUp;
 
     public class AeotecMultiSensor6 : MultiSensor
     {
         public AeotecMultiSensor6(ZWaveSerialClient client, byte nodeId)
             : base(client, nodeId)
         {
-            Client.GetCommandClass<NotificationCommandClass>().HomeSecurityStateChanged += (sender, eventArgs) =>
-            {
-                if (eventArgs.SourceNodeId == NodeId)
-                {
-                    switch (eventArgs.State)
-                    {
-                        case HomeSecurityState.Idle:
-                            Idle?.Invoke(sender, new EventArgs());
-                            break;
-                        case HomeSecurityState.MotionDetection:
-                            MotionDetected?.Invoke(sender, new EventArgs());
-                            break;
-                    }
-                }
-            };
+            var notification = Client.GetCommandClass<NotificationCommandClass>();
+            notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;
         }
 
-        public event EventHandler? MotionDetected;
-        public event EventHandler? Idle;
+        public event EventHandler? HomeSecurityIdle;
+
+        public event EventHandler? HomeSecurityMotionDetected;
 
         public async Task<SensorValue> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken)
         {
@@ -47,6 +34,24 @@ namespace ZWaveSerialApi.Devices.Aeotec
         public async Task<SensorValue> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken)
         {
             return await GetMultilevelSensorValueAsync(MultilevelSensorType.AirTemperature, scale, cancellationToken);
+        }
+
+        private void OnNotificationHomeSecurityStateChanged(object? sender, HomeSecurityEventArgs eventArgs)
+        {
+            if (eventArgs.SourceNodeId != NodeId)
+            {
+                return;
+            }
+
+            switch (eventArgs.State)
+            {
+                case HomeSecurityState.Idle:
+                    HomeSecurityIdle?.Invoke(sender, EventArgs.Empty);
+                    break;
+                case HomeSecurityState.MotionDetection:
+                    HomeSecurityMotionDetected?.Invoke(sender, EventArgs.Empty);
+                    break;
+            }
         }
     }
 }

@@ -93,12 +93,7 @@ namespace ZWaveSerialApi.Utilities
 
             var waitCompletionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             using var registration = cancellationToken.Register(() => waitCompletionSource.SetCanceled(cancellationToken));
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled(cancellationToken);
-            }
-
-            return Task.WhenAny(task, waitCompletionSource.Task);
+            return cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : Task.WhenAny(task, waitCompletionSource.Task);
         }
     }
 }

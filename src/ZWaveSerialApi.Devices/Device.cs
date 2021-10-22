@@ -6,8 +6,12 @@
 
 namespace ZWaveSerialApi.Devices
 {
+    using System;
+
     public abstract class Device
     {
+        protected static TimeSpan CommunicationTimeout = TimeSpan.FromSeconds(5);
+
         protected Device(ZWaveSerialClient client, byte nodeId)
         {
             Client = client;
