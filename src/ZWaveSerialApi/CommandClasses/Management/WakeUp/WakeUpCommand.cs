@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 {
-    public enum WakeUpCommand
+    internal enum WakeUpCommand
     {
         IntervalSet = 0x04,
         IntervalGet = 0x05,

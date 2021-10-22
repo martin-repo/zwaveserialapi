@@ -10,7 +10,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 
     public enum HumidityScale
     {
-        [Unit("%", "Relative humidity %")]
+        [Unit("%", "Relative humidity")]
         Percentage = 0x00
     }
 }

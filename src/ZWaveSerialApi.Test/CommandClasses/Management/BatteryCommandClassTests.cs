@@ -21,13 +21,13 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
     {
         private BatteryCommandClass _batteryCommandClass;
 
-        [TestCase(1, "80-03-50", 80, false)]
-        [TestCase(1, "80-03-FF", 0, true)]
+        [TestCase(1, "80-03-50", false, 80)]
+        [TestCase(1, "80-03-FF", true, 0)]
         public void ProcessCommandClassBytes_ShouldInvokeReportEvent(
             byte sourceNodeId,
             string bytesString,
-            byte expectedPercentage,
-            bool expectedIsLow)
+            bool expectedIsLow,
+            byte expectedPercentage)
         {
             var eventInvoked = false;
 

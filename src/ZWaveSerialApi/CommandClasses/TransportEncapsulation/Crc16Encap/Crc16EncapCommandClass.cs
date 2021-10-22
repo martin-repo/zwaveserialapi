@@ -42,7 +42,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
                 return;
             }
 
-            var encapCommandClassBytes = commandClassBytes[2..];
+            var encapCommandClassBytes = commandClassBytes[2..^2];
             var encapCommandClassType = (CommandClassType)encapCommandClassBytes[0];
             var encapCommandClass = _client.GetCommandClass(encapCommandClassType);
             encapCommandClass.ProcessCommandClassBytes(sourceNodeId, encapCommandClassBytes);

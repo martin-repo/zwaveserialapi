@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Management.Battery
 {
-    public enum BatteryCommand
+    internal enum BatteryCommand
     {
         Report = 0x03
     }

@@ -67,7 +67,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
                 case HomeSecurityState.Idle:
                 case HomeSecurityState.CoverTampering:
                 case HomeSecurityState.MotionDetection:
-                    var parameters = parameterLength > 0 ? commandClassBytes[9..(9+parameterLength)] : Array.Empty<byte>();
+                    var parameters = parameterLength > 0 ? commandClassBytes[9..(9 + parameterLength)] : Array.Empty<byte>();
                     HomeSecurityStateChanged?.Invoke(this, new HomeSecurityEventArgs(sourceNodeId, state, parameters));
                     break;
                 default:
