@@ -53,7 +53,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
         }
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (MultilevelSensorCommand)commandClassBytes[1];
             if (command != MultilevelSensorCommand.Report)

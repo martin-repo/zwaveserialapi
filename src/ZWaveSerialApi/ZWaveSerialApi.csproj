@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <Version>0.1.1-alpha</Version>
+    <Authors>martin-repo</Authors>
+    <PackageProjectUrl>https://github.com/martin-repo/zwaveserialapi</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

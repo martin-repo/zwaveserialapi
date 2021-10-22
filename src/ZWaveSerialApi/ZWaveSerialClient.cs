@@ -31,20 +31,22 @@ namespace ZWaveSerialApi
     {
         private const int Attempts = 3;
         private readonly Dictionary<CommandClassType, CommandClass> _commandClasses;
+        private readonly SemaphoreSlim _functionSemaphore = new(1, 1);
         private readonly ILogger _logger;
         private readonly TimeSpan _networkTimeout = TimeSpan.FromSeconds(1);
         private readonly IZWaveSerialPort _port;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(1);
-        private readonly SemaphoreSlim _functionSemaphore = new(1, 1);
 
-        public ZWaveSerialClient(ILogger logger, IZWaveSerialPort port)
+        public ZWaveSerialClient(ILogger logger, string portName)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _port = port;
+            _port = new ZWaveSerialPort(logger, portName);
             _port.DataFrameReceived += OnDataFrameReceived;
 
             _commandClasses = CreateCommandClasses();
         }
+
+        public byte NodeId => 1;
 
         public T GetCommandClass<T>()
             where T : CommandClass
@@ -78,7 +80,6 @@ namespace ZWaveSerialApi
                 var functionCall = CreateFunctionCall(function);
                 var (transmitSuccess, returnValue) = await functionCall.ExecuteAsync(cancellationToken);
                 return transmitSuccess && ((SendDataRx)returnValue!).Success;
-
             }
             finally
             {
@@ -102,9 +103,6 @@ namespace ZWaveSerialApi
             {
                 _functionSemaphore.Release();
             }
-
-
-         
         }
 
         public async Task<bool> SetPromiscuousModeAsync(bool enabled, CancellationToken cancellationToken)
@@ -121,9 +119,6 @@ namespace ZWaveSerialApi
             {
                 _functionSemaphore.Release();
             }
-
-
-
         }
 
         private Dictionary<CommandClassType, CommandClass> CreateCommandClasses()

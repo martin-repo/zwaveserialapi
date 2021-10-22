@@ -17,7 +17,7 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.Frames;
     using ZWaveSerialApi.Utilities;
 
-    public class ZWaveSerialPort : IZWaveSerialPort, IDisposable
+    internal class ZWaveSerialPort : IZWaveSerialPort, IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly ILogger _logger;

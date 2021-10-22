@@ -1,14 +1,9 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="BasicCommand.cs" company="Martin Karlsson">
+// <copyright file="UnitTestAccess.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.CommandClasses.Application.Basic
-{
-    internal enum BasicCommand
-    {
-        Set = 0x01,
-        Report = 0x03
-    }
-}
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("ZWaveSerialApi.Test")]

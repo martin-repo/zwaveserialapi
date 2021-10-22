@@ -23,7 +23,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Basic
 
         public event EventHandler<BasicEventArgs>? Set;
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (BasicCommand)commandClassBytes[1];
             switch (command)

@@ -8,6 +8,6 @@ namespace ZWaveSerialApi.CommandClasses
 {
     public abstract class CommandClass
     {
-        public abstract void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes);
+        internal abstract void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes);
     }
 }

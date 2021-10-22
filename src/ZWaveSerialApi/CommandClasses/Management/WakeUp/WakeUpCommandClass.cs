@@ -7,7 +7,6 @@
 namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 {
     using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -72,7 +71,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
         }
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (WakeUpCommand)commandClassBytes[1];
             switch (command)
@@ -92,9 +91,6 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             }
         }
 
-
-
-
         private void ProcessIntervalCapabilitiesReport(byte sourceNodeId, byte[] commandClassBytes)
         {
             var minimumInterval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[2..5]));
@@ -109,13 +105,13 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
         private void ProcessIntervalReport(byte sourceNodeId, byte[] commandClassBytes)
         {
-            var nodeId = commandClassBytes[5];
+            var destinationNodeId = commandClassBytes[5];
 
-            //if (nodeId != controller node id)
-            //{
-            //    _logger.Error("Received interval report from {SourceNodeId} intended for {DestinationNodeId}", sourceNodeId, nodeId);
-            //    return;
-            //}
+            if (destinationNodeId != _client.NodeId)
+            {
+                _logger.Error("Received interval report from {SourceNodeId} intended for {DestinationNodeId}", sourceNodeId, destinationNodeId);
+                return;
+            }
 
             var interval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[2..5]));
             IntervalReport?.Invoke(this, new WakeUpIntervalEventArgs(sourceNodeId, interval));

@@ -12,7 +12,7 @@ namespace ZWaveSerialApi
 
     using ZWaveSerialApi.Frames;
 
-    public interface IZWaveSerialPort
+    internal interface IZWaveSerialPort
     {
         event EventHandler<ControlFrameEventArgs>? ControlFrameReceived;
 

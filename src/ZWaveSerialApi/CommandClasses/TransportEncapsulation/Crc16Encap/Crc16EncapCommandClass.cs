@@ -25,7 +25,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
             _client = client;
         }
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (Crc16EncapCommand)commandClassBytes[1];
             if (command != Crc16EncapCommand.Crc16Encap)

@@ -16,7 +16,7 @@ namespace ZWaveSerialApi.Functions
 
     using ZWaveSerialApi.Frames;
 
-    public class FunctionCall
+    internal class FunctionCall
     {
         private readonly int _attempts;
         private readonly StateMachine<TransmitState, TransmitTrigger>.TriggerWithParameters<bool, IFunctionRx?> _completeTrigger;
@@ -146,7 +146,7 @@ namespace ZWaveSerialApi.Functions
                     _machine.Fire(TransmitTrigger.RetryAfterDelay);
                     break;
                 default:
-                    _logger.Error("Invalid control frame type {ControlFrameType}", eventArgs.FramePreamble);
+                    _logger.Error("Invalid control frame preamble {FramePreamble}", eventArgs.FramePreamble);
                     _machine.Fire(_completeTrigger, false, null);
                     break;
             }

@@ -8,7 +8,7 @@ namespace ZWaveSerialApi.Frames
 {
     using System;
 
-    public class ControlFrameEventArgs : EventArgs
+    internal class ControlFrameEventArgs : EventArgs
     {
         public ControlFrameEventArgs(FramePreamble framePreamble)
         {

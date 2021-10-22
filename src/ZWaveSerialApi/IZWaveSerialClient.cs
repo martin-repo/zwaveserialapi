@@ -14,6 +14,8 @@ namespace ZWaveSerialApi
 
     public interface IZWaveSerialClient
     {
+        byte NodeId { get; }
+
         T GetCommandClass<T>()
             where T : CommandClass;
 

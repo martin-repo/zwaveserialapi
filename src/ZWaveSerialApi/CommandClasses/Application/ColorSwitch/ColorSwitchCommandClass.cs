@@ -26,7 +26,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
             _client = client;
         }
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             _logger.Error("Unsupported color switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
         }

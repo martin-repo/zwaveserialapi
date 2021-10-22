@@ -8,7 +8,7 @@ namespace ZWaveSerialApi.Frames
 {
     using System;
 
-    public class DataFrameEventArgs : EventArgs
+    internal class DataFrameEventArgs : EventArgs
     {
         public DataFrameEventArgs(IDataFrame dataFrame)
         {

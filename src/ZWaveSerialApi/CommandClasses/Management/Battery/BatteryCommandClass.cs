@@ -21,7 +21,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.Battery
 
         public event EventHandler<BatteryEventArgs>? Report;
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (BatteryCommand)commandClassBytes[1];
             switch (command)

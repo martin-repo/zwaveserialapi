@@ -23,7 +23,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
 
         public event EventHandler<HomeSecurityEventArgs>? HomeSecurityStateChanged;
 
-        public override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
             var command = (NotificationCommand)commandClassBytes[1];
             if (command != NotificationCommand.Report)
