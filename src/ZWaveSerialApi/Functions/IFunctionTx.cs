@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public interface IFunctionTx
+    internal interface IFunctionTx
     {
         byte[] FunctionArgsBytes { get; }
 

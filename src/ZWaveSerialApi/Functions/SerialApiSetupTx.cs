@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public class SerialApiSetupTx : FunctionTx
+    internal class SerialApiSetupTx : FunctionTx
     {
         private SerialApiSetupTx(byte[] functionArgsBytes)
             : base(functionArgsBytes)

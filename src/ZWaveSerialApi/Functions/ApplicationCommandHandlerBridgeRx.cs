@@ -10,7 +10,7 @@ namespace ZWaveSerialApi.Functions
 
     using ZWaveSerialApi.CommandClasses;
 
-    public class ApplicationCommandHandlerBridgeRx : FunctionRx
+    internal class ApplicationCommandHandlerBridgeRx : FunctionRx
     {
         public ApplicationCommandHandlerBridgeRx(byte[] returnValueBytes)
             : base(FunctionType.ApplicationCommandHandlerBridge, returnValueBytes)

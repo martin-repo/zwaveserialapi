@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public class SetPromiscuousModeTx : FunctionTx
+    internal class SetPromiscuousModeTx : FunctionTx
     {
         private SetPromiscuousModeTx(byte[] functionArgsBytes)
             : base(functionArgsBytes)

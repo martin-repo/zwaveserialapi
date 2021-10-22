@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public class SendDataTx : FunctionTx
+    internal class SendDataTx : FunctionTx
     {
         private static int callbackId;
 

@@ -1,12 +1,14 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IFunctionRx.cs" company="Martin Karlsson">
+// <copyright file="SendDataRx.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
 namespace ZWaveSerialApi.Functions
 {
-    internal interface IFunctionRx
+    internal enum ApplicationUpdateStatus
     {
+        NodeInfoReceived = 0x84
     }
+
 }

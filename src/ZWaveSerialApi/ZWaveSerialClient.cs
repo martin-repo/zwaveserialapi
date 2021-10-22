@@ -70,6 +70,24 @@ namespace ZWaveSerialApi
             return _commandClasses[type];
         }
 
+        public async Task<GetSucNodeIdResponse> GetSucNodeIdAsync(CancellationToken cancellationToken)
+        {
+            await _functionSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                var function = GetSucNodeIdTx.Create();
+                var functionCall = CreateFunctionCall(function);
+                var (transmitSuccess, returnValue) = await functionCall.ExecuteAsync(cancellationToken);
+
+                var nodeId = transmitSuccess ? ((GetSucNodeIdRx)returnValue!).NodeId : (byte)0;
+                return new GetSucNodeIdResponse(transmitSuccess, nodeId);
+            }
+            finally
+            {
+                _functionSemaphore.Release();
+            }
+        }
+
         public async Task<bool> SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken)
         {
             await _functionSemaphore.WaitAsync(cancellationToken);

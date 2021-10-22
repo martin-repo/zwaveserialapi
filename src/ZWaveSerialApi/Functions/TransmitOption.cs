@@ -9,7 +9,7 @@ namespace ZWaveSerialApi.Functions
     using System;
 
     [Flags]
-    public enum TransmitOption
+    internal enum TransmitOption
     {
         Ack = 0x01,
         LowPower = 0x02,

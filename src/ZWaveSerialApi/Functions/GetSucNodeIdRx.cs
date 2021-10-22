@@ -1,19 +1,19 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="SerialApiSetupRx.cs" company="Martin Karlsson">
+// <copyright file="GetSucNodeIdRx.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
 namespace ZWaveSerialApi.Functions
 {
-    public class SerialApiSetupRx : FunctionRx
+    internal class GetSucNodeIdRx : FunctionRx
     {
-        public SerialApiSetupRx(byte[] returnValueBytes)
-            : base(FunctionType.SerialApiSetup, returnValueBytes)
+        public GetSucNodeIdRx(byte[] returnValueBytes)
+            : base(FunctionType.SendData, returnValueBytes)
         {
-            Response = returnValueBytes[2..];
+            NodeId = returnValueBytes[1];
         }
 
-        public byte[] Response { get; }
+        public byte NodeId { get; }
     }
 }

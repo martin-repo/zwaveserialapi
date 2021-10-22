@@ -8,7 +8,7 @@ namespace ZWaveSerialApi.Functions
 {
     using System;
 
-    public abstract class FunctionRx : IFunctionRx
+    internal abstract class FunctionRx : IFunctionRx
     {
         protected FunctionRx(FunctionType functionType, byte[] returnValueBytes)
         {

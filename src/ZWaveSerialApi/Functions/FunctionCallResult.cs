@@ -6,5 +6,5 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public record FunctionCallResult(bool TransmitSuccess, IFunctionRx? ReturnValue);
+    internal record FunctionCallResult(bool TransmitSuccess, IFunctionRx? ReturnValue);
 }

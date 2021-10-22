@@ -1,19 +1,19 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="SendDataRx.cs" company="Martin Karlsson">
+// <copyright file="SerialApiSetupRx.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
 namespace ZWaveSerialApi.Functions
 {
-    public class SendDataRx : FunctionRx
+    internal class SerialApiSetupRx : FunctionRx
     {
-        public SendDataRx(byte[] returnValueBytes)
-            : base(FunctionType.SendData, returnValueBytes)
+        public SerialApiSetupRx(byte[] returnValueBytes)
+            : base(FunctionType.SerialApiSetup, returnValueBytes)
         {
-            Success = returnValueBytes[1] != 0;
+            Response = returnValueBytes[2..];
         }
 
-        public bool Success { get; }
+        public byte[] Response { get; }
     }
 }
