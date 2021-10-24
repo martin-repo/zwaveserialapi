@@ -17,21 +17,15 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 
     public class ColorSwitchCommandClass : CommandClass
     {
-        private readonly IZWaveSerialClient _client;
         private readonly ILogger _logger;
 
         public ColorSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _client = client;
         }
 
-        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
-        {
-            _logger.Error("Unsupported color switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
-        }
-
-        public async Task<bool> SetAsync(
+        public async Task SetAsync(
             byte destinationNodeId,
             ICollection<ColorComponent> colorComponents,
             DurationType duration,
@@ -50,7 +44,12 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 
             commandClassBytes.Add((byte)duration);
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken);
+        }
+
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        {
+            _logger.Error("Unsupported color switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
         }
 
         private byte ConstructMetadataByte(int colorComponentCount)

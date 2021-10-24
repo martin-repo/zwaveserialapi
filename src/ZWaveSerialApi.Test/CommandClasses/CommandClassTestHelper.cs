@@ -20,20 +20,17 @@ namespace ZWaveSerialApi.Test.CommandClasses
             byte destinationNodeId,
             string expectedByteString,
             Mock<IZWaveSerialClient> clientMock,
-            Func<byte, CancellationToken, Task<bool>> commandClassAction)
+            Func<byte, CancellationToken, Task> commandClassAction)
         {
-            using var cancellationTokenSource = new CancellationTokenSource();
-
             var bytesString = string.Empty;
-            clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), cancellationTokenSource.Token))
+            clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                       .Returns(Task.FromResult(true));
 
-            var result = commandClassAction(destinationNodeId, cancellationTokenSource.Token).Result;
+            commandClassAction(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
 
-            clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), cancellationTokenSource.Token), Times.Once);
+            clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
 
-            Assert.That(result, Is.True);
             Assert.That(bytesString, Is.EqualTo(expectedByteString));
         }
     }

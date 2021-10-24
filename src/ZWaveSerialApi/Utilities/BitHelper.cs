@@ -45,6 +45,11 @@ namespace ZWaveSerialApi.Utilities
         /// </summary>
         public static int Bit6Mask = GetBitMask(7);
 
+        public static bool IsSet(byte @byte, int index)
+        {
+            return (@byte & (1 << index)) != 0;
+        }
+
         private static int GetBitMask(int bitCount)
         {
             return (int)Math.Pow(2, bitCount) - 1;

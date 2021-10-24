@@ -22,4 +22,8 @@
     <ProjectReference Include="..\ZWaveSerialApi\ZWaveSerialApi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Functions\SerialApi\" />
+  </ItemGroup>
+
 </Project>

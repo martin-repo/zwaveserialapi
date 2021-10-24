@@ -11,8 +11,11 @@ namespace ZWaveSerialApi.Functions
         ApplicationCommandHandlerBridge = 0xA8,
         ApplicationUpdate = 0x49,
         GetSucNodeId = 0x56,
+        MemoryGetId = 0x20,
         SendData = 0x13,
+        SendDataAbort = 0x16,
+        SerialApiGetInitData = 0x02,
         SerialApiSetup = 0x0B,
-        SetPromiscuousMode = 0xD0
+        TypeLibrary = 0xBD
     }
 }

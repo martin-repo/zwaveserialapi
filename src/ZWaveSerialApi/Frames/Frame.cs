@@ -6,9 +6,9 @@
 
 namespace ZWaveSerialApi.Frames
 {
-    public abstract class Frame
+    public class Frame
     {
-        protected Frame(byte[] frameBytes)
+        public Frame(byte[] frameBytes)
         {
             Bytes = frameBytes;
             Preamble = (FramePreamble)Bytes[0];

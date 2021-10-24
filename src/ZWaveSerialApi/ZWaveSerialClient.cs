@@ -8,7 +8,6 @@ namespace ZWaveSerialApi
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -22,33 +21,51 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
     using ZWaveSerialApi.CommandClasses.Management.Battery;
+    using ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific;
     using ZWaveSerialApi.CommandClasses.Management.WakeUp;
     using ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap;
     using ZWaveSerialApi.Frames;
     using ZWaveSerialApi.Functions;
+    using ZWaveSerialApi.Functions.SerialApi;
+    using ZWaveSerialApi.Functions.ZWave;
+    using ZWaveSerialApi.Functions.ZWave.SendData;
+    using ZWaveSerialApi.Functions.ZWave.TypeLibrary;
 
-    public class ZWaveSerialClient : IZWaveSerialClient
+    // TODO: Read/write device configuration parameters
+    // TODO: Inclusion/exclusion of devices
+    public class ZWaveSerialClient : IZWaveSerialClient, IDisposable
     {
-        private const int Attempts = 3;
         private readonly Dictionary<CommandClassType, CommandClass> _commandClasses;
         private readonly SemaphoreSlim _functionSemaphore = new(1, 1);
         private readonly ILogger _logger;
-        private readonly TimeSpan _networkTimeout = TimeSpan.FromSeconds(1);
-        private readonly IZWaveSerialPort _port;
-        private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(1);
+        private readonly ZWaveSerialPort _port;
 
-        public ZWaveSerialClient(ILogger logger, string portName)
+        public ZWaveSerialClient(string portName, ILogger logger)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _port = new ZWaveSerialPort(logger, portName);
+
+            _port = new ZWaveSerialPort(portName, logger);
             _port.DataFrameReceived += OnDataFrameReceived;
 
             _commandClasses = CreateCommandClasses();
 
-            NodeId = GetNodeId();
+            (NodeId, DeviceNodeIds) = InitializeAsync(CancellationToken.None).Result;
         }
 
+        public ZWaveSerialClient(string portName) : this(portName, new LoggerConfiguration().CreateLogger())
+        {
+        }
+
+        public byte[] DeviceNodeIds { get; }
+
         public byte NodeId { get; }
+
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+
+        public void Dispose()
+        {
+            _port.Dispose();
+        }
 
         public T GetCommandClass<T>()
             where T : CommandClass
@@ -72,73 +89,91 @@ namespace ZWaveSerialApi
             return _commandClasses[type];
         }
 
-        public async Task<GetSucNodeIdResponse> GetSucNodeIdAsync(CancellationToken cancellationToken)
+        public async Task<byte> GetSucNodeIdAsync(CancellationToken cancellationToken)
         {
-            await _functionSemaphore.WaitAsync(cancellationToken);
+            var result = (GetSucNodeIdRx)await InvokeFunction(GetSucNodeIdTx.Create(), cancellationToken);
+            return result.NodeId;
+        }
+
+        public async Task SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken)
+        {
+            const TransmitOption TransmitOptions = TransmitOption.Ack | TransmitOption.AutoRoute | TransmitOption.Explore;
+
+            var callbackFuncId = SendDataTx.GetNextCompletedFuncId();
+
+            var callbackSource = new TaskCompletionSource<TransmitComplete>();
+
+            void Callback(object? sender, DataFrameEventArgs eventArgs)
+            {
+                var dataFrame = eventArgs.DataFrame;
+                if (dataFrame.Type != FrameType.Request
+                    || dataFrame.FunctionType != FunctionType.SendData
+                    || dataFrame.SerialCommandBytes[1] != callbackFuncId)
+                {
+                    return;
+                }
+
+                var complete = (TransmitComplete)dataFrame.SerialCommandBytes[2];
+                callbackSource.TrySetResult(complete);
+            }
+
+            _port.DataFrameReceived += Callback;
             try
             {
-                var function = GetSucNodeIdTx.Create();
-                var functionCall = CreateFunctionCall(function);
-                var (transmitSuccess, returnValue) = await functionCall.ExecuteAsync(cancellationToken);
+                var executeTask = InvokeFunction(
+                    SendDataTx.Create(destinationNodeId, commandClassBytes, TransmitOptions, callbackFuncId),
+                    cancellationToken);
+                if (await Task.WhenAny(executeTask, Task.Delay(Timeout, cancellationToken)) != executeTask)
+                {
+                    throw new TimeoutException("Timeout waiting for SendData to transmit.");
+                }
 
-                var nodeId = transmitSuccess ? ((GetSucNodeIdRx)returnValue!).NodeId : (byte)0;
-                return new GetSucNodeIdResponse(transmitSuccess, nodeId);
+                var result = (SendDataRx)executeTask.GetAwaiter().GetResult();
+                if (!result.Success)
+                {
+                    throw new TransmitException("Serial port did not respond.");
+                }
+
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(Timeout, cancellationToken)) != callbackSource.Task)
+                {
+                    throw new TimeoutException("Timeout waiting for SendData callback.");
+                }
+
+                var complete = callbackSource.Task.GetAwaiter().GetResult();
+                if (complete != TransmitComplete.Ok)
+                {
+                    throw new TransmitException($"SendData error {complete}.");
+                }
             }
             finally
             {
-                _functionSemaphore.Release();
+                _port.DataFrameReceived -= Callback;
             }
         }
 
-        public async Task<bool> SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken)
+        public async Task<SerialApiGetInitDataResponse> SerialApiGetInitDataAsync(CancellationToken cancellationToken)
         {
-            await _functionSemaphore.WaitAsync(cancellationToken);
-            try
-            {
-                const TransmitOption TransmitOptions = TransmitOption.Ack | TransmitOption.AutoRoute | TransmitOption.Explore;
-                var function = SendDataTx.Create(destinationNodeId, commandClassBytes, TransmitOptions, false);
-                var functionCall = CreateFunctionCall(function);
-                var (transmitSuccess, returnValue) = await functionCall.ExecuteAsync(cancellationToken);
-                return transmitSuccess && ((SendDataRx)returnValue!).Success;
-            }
-            finally
-            {
-                _functionSemaphore.Release();
-            }
+            var result = (SerialApiGetInitDataRx)await InvokeFunction(SerialApiGetInitDataTx.Create(), cancellationToken);
+            return new SerialApiGetInitDataResponse(result.IsStaticUpdateController, result.DeviceNodeIds);
         }
 
-        public async Task<SerialApiSetupResponse> SerialApiSetupAsync(bool enableStatusReport, CancellationToken cancellationToken)
+        /// <summary>
+        /// Enable/disable transmission metrics appended to SendData callback.
+        /// </summary>
+        /// <remarks>
+        /// INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
+        /// 4.1.4 Version 6
+        /// </remarks>
+        public async Task<byte[]> SerialApiSetupAsync(bool enableStatusReport, CancellationToken cancellationToken)
         {
-            await _functionSemaphore.WaitAsync(cancellationToken);
-            try
-            {
-                var function = SerialApiSetupTx.Create(enableStatusReport);
-                var functionCall = CreateFunctionCall(function);
-                var (transmitSuccess, returnValue) = await functionCall.ExecuteAsync(cancellationToken);
-
-                var response = new ReadOnlyCollection<byte>(((SerialApiSetupRx)returnValue!).Response);
-                return new SerialApiSetupResponse(transmitSuccess, response);
-            }
-            finally
-            {
-                _functionSemaphore.Release();
-            }
+            var result = (SerialApiSetupRx)await InvokeFunction(SerialApiSetupTx.Create(enableStatusReport), cancellationToken);
+            return result.Response;
         }
 
-        public async Task<bool> SetPromiscuousModeAsync(bool enabled, CancellationToken cancellationToken)
+        public async Task<LibraryType> TypeLibraryAsync(CancellationToken cancellationToken)
         {
-            await _functionSemaphore.WaitAsync(cancellationToken);
-            try
-            {
-                var function = SetPromiscuousModeTx.Create(enabled);
-                var functionCall = CreateFunctionCall(function);
-                var (transmitSuccess, _) = await functionCall.ExecuteAsync(cancellationToken);
-                return transmitSuccess;
-            }
-            finally
-            {
-                _functionSemaphore.Release();
-            }
+            var result = (TypeLibraryRx)await InvokeFunction(TypeLibraryTx.Create(), cancellationToken);
+            return (LibraryType)result.LibraryType;
         }
 
         private Dictionary<CommandClassType, CommandClass> CreateCommandClasses()
@@ -146,14 +181,15 @@ namespace ZWaveSerialApi
             var commandClasses = new Dictionary<CommandClassType, CommandClass>
                                  {
                                      // Application
-                                     { CommandClassType.Basic, new BasicCommandClass(_logger) },
+                                     { CommandClassType.Basic, new BasicCommandClass(_logger, this) },
                                      { CommandClassType.ColorSwitch, new ColorSwitchCommandClass(_logger, this) },
                                      { CommandClassType.MultilevelSensor, new MultilevelSensorCommandClass(_logger, this) },
                                      { CommandClassType.MultilevelSwitch, new MultilevelSwitchCommandClass(_logger, this) },
-                                     { CommandClassType.Notification, new NotificationCommandClass(_logger) },
+                                     { CommandClassType.Notification, new NotificationCommandClass(_logger, this) },
 
                                      // Management
-                                     { CommandClassType.Battery, new BatteryCommandClass(_logger) },
+                                     { CommandClassType.Battery, new BatteryCommandClass(_logger, this) },
+                                     { CommandClassType.ManufacturerSpecific, new ManufacturerSpecificCommandClass(_logger, this) },
                                      { CommandClassType.WakeUp, new WakeUpCommandClass(_logger, this) },
 
                                      // Transport encapsulation
@@ -162,27 +198,63 @@ namespace ZWaveSerialApi
             return commandClasses;
         }
 
-        private FunctionCall CreateFunctionCall(IFunctionTx function)
+        private async Task<(byte NodeId, byte[] DeviceNodeIds)> InitializeAsync(CancellationToken cancellationToken)
         {
-            return new FunctionCall(
-                _logger,
-                _port,
-                function,
-                Attempts,
-                _networkTimeout,
-                _retryDelay);
-        }
-
-        private byte GetNodeId()
-        {
-            using var cancellationTokenSource = new CancellationTokenSource(_networkTimeout);
-            var (success, nodeId) = GetSucNodeIdAsync(cancellationTokenSource.Token).Result;
-            if (!success)
+            var libraryType = await TypeLibraryAsync(cancellationToken);
+            if (libraryType != LibraryType.BridgeController)
             {
-                throw new InvalidOperationException("Failed to read node id");
+                throw new NotSupportedException("Only bridge controllers are supported.");
             }
 
-            return nodeId;
+            var (isStaticUpdateController, deviceNodeIds) = await SerialApiGetInitDataAsync(cancellationToken);
+            if (!isStaticUpdateController)
+            {
+                throw new NotSupportedException("Only static update controllers are supported.");
+            }
+
+            var nodeId = await GetSucNodeIdAsync(cancellationToken);
+
+            _ = await SerialApiSetupAsync(false, cancellationToken);
+
+            return (nodeId, deviceNodeIds);
+        }
+
+        private async Task<IFunctionRx> InvokeFunction(FunctionTx function, CancellationToken cancellationToken)
+        {
+            var callbackSource = new TaskCompletionSource<IFunctionRx>();
+
+            void Callback(object? sender, DataFrameEventArgs eventArgs)
+            {
+                var dataFrame = eventArgs.DataFrame;
+                if (dataFrame.Type != FrameType.Response || !function.IsValidReturnValue(dataFrame.SerialCommandBytes))
+                {
+                    return;
+                }
+
+                var returnValue = function.CreateReturnValue(dataFrame.SerialCommandBytes);
+                callbackSource.TrySetResult(returnValue);
+            }
+
+            await _functionSemaphore.WaitAsync(cancellationToken);
+            try
+            {
+                _port.DataFrameReceived += Callback;
+
+                var dataFrame = DataFrame.Create(FrameType.Request, function.FunctionArgsBytes);
+                await _port.WriteDataFrameAsync(dataFrame, cancellationToken);
+
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(Timeout, cancellationToken)) != callbackSource.Task)
+                {
+                    throw new TimeoutException("Timeout waiting for function transmit response.");
+                }
+
+                return callbackSource.Task.Result;
+            }
+            finally
+            {
+                _functionSemaphore.Release();
+                _port.DataFrameReceived -= Callback;
+            }
         }
 
         private void OnDataFrameReceived(object? sender, DataFrameEventArgs eventArgs)

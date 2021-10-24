@@ -14,27 +14,21 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
 
     public class MultilevelSwitchCommandClass : CommandClass
     {
-        private readonly IZWaveSerialClient _client;
         private readonly ILogger _logger;
 
         public MultilevelSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _client = client;
         }
 
-        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
-        {
-            _logger.Error("Unsupported multilevel switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
-        }
-
-        public async Task<bool> SetAsync(
+        public async Task SetAsync(
             byte destinationNodeId,
             byte level,
             DurationType duration,
             CancellationToken cancellationToken)
         {
-            if (level > 0x63 && level < 0xFF)
+            if (level is > 0x63 and < 0xFF)
             {
                 throw new ArgumentOutOfRangeException(nameof(level), "Level must be 0 to 99 or 255.");
             }
@@ -45,7 +39,12 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
             commandClassBytes[2] = level;
             commandClassBytes[3] = (byte)duration;
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+        }
+
+        internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
+        {
+            _logger.Error("Unsupported multilevel switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
         }
     }
 }

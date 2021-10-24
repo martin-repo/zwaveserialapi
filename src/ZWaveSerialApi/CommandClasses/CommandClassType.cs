@@ -17,6 +17,7 @@ namespace ZWaveSerialApi.CommandClasses
 
         // Management
         Battery = 0x80,
+        ManufacturerSpecific = 0x72,
         WakeUp = 0x84,
 
         // Transport encapsulation

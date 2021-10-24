@@ -16,7 +16,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
     {
         private readonly ILogger _logger;
 
-        public NotificationCommandClass(ILogger logger)
+        public NotificationCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
         }

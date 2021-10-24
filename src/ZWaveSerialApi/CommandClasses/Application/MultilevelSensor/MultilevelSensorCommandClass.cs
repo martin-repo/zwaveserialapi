@@ -7,6 +7,7 @@
 namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,18 +17,18 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 
     public class MultilevelSensorCommandClass : CommandClass
     {
-        private readonly IZWaveSerialClient _client;
         private readonly ILogger _logger;
+        private readonly ConcurrentDictionary<byte, TaskCompletionSource<MultilevelSensorReport>> _reportCallbackSources = new();
 
         public MultilevelSensorCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _client = client;
         }
 
         public event EventHandler<MultilevelSensorEventArgs>? Report;
 
-        public async Task<bool> GetAsync<T>(
+        public async Task<MultilevelSensorReport> GetAsync<T>(
             byte destinationNodeId,
             MultilevelSensorType sensorType,
             T scale,
@@ -37,8 +38,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             var expectedScaleEnumType = AttributeHelper.GetScaleEnumType(sensorType);
             if (expectedScaleEnumType != scale.GetType())
             {
-                _logger.Error("Attempt to use {SensorType} with scale {ScaleType}", sensorType, scale.GetType().Name);
-                return false;
+                throw new InvalidOperationException($"Attempt to use {sensorType} with scale {scale.GetType().Name}");
             }
 
             var scaleValue = Convert.ToByte(scale);
@@ -49,7 +49,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             commandClassBytes[2] = (byte)sensorType;
             commandClassBytes[3] = ConstructMetadataByte(0, scaleValue, 0);
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
@@ -87,6 +87,12 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             }
 
             var value = rawValue / Math.Pow(10, precision);
+
+            if (_reportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
+            {
+                var get = new MultilevelSensorReport(sensorType, value, unit, label, scale);
+                callbackSource.TrySetResult(get);
+            }
 
             Report?.Invoke(
                 this,

@@ -8,7 +8,6 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     using Serilog;
 
@@ -16,13 +15,12 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
 
     public class Crc16EncapCommandClass : CommandClass
     {
-        private readonly IZWaveSerialClient _client;
         private readonly ILogger _logger;
 
         public Crc16EncapCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _client = client;
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
@@ -44,7 +42,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
 
             var encapCommandClassBytes = commandClassBytes[2..^2];
             var encapCommandClassType = (CommandClassType)encapCommandClassBytes[0];
-            var encapCommandClass = _client.GetCommandClass(encapCommandClassType);
+            var encapCommandClass = Client.GetCommandClass(encapCommandClassType);
             encapCommandClass.ProcessCommandClassBytes(sourceNodeId, encapCommandClassBytes);
         }
 

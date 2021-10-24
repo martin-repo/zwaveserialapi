@@ -27,7 +27,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
         [TestCase(1, "56-01-20-01-02-03-30-65", 16)]
         public void ProcessCommandClassBytes_ShouldCallProcessCommandClassBytes(byte sourceNodeId, string bytesString, byte expectedValue)
         {
-            var unitTestCommandClass = new UnitTestCommandClass();
+            var unitTestCommandClass = new UnitTestCommandClass(_clientMock.Object);
             _clientMock.Setup(mock => mock.GetCommandClass(CommandClassType.Basic)).Returns(unitTestCommandClass);
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
@@ -49,6 +49,11 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
 
         private class UnitTestCommandClass : CommandClass
         {
+            public UnitTestCommandClass(IZWaveSerialClient client)
+                : base(client)
+            {
+            }
+
             public byte[] CommandClassBytes { get; private set; }
 
             public byte SourceNodeId { get; private set; }

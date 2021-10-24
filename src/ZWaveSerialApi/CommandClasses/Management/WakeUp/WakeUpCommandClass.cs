@@ -7,6 +7,7 @@
 namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,40 +17,39 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
     public class WakeUpCommandClass : CommandClass
     {
-        private readonly IZWaveSerialClient _client;
+        private readonly ConcurrentDictionary<byte, TaskCompletionSource<WakeUpIntervalCapabilitiesReport>>
+            _intervalCapabilitiesReportCallbackSources = new();
+
+        private readonly ConcurrentDictionary<byte, TaskCompletionSource<TimeSpan>> _intervalReportCallbackSources = new();
         private readonly ILogger _logger;
 
         public WakeUpCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
-            _client = client;
         }
-
-        public event EventHandler<WakeUpIntervalCapabilitiesEventArgs>? IntervalCapabilitiesReport;
-
-        public event EventHandler<WakeUpIntervalEventArgs>? IntervalReport;
 
         public event EventHandler<WakeUpNotificationEventArgs>? Notification;
 
-        public async Task<bool> IntervalCapabilitiesGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task<WakeUpIntervalCapabilitiesReport> IntervalCapabilitiesGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.IntervalCapabilitiesGet;
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalCapabilitiesReportCallbackSources, cancellationToken);
         }
 
-        public async Task<bool> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.IntervalGet;
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalReportCallbackSources, cancellationToken);
         }
 
-        public async Task<bool> IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken)
+        public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken)
         {
             var commandClassBytes = new byte[6];
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
@@ -59,16 +59,16 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
             commandClassBytes[5] = destinationNodeId;
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
         }
 
-        public async Task<bool> NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.NoMoreInformation;
 
-            return await _client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
@@ -93,28 +93,38 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
         private void ProcessIntervalCapabilitiesReport(byte sourceNodeId, byte[] commandClassBytes)
         {
+            if (!_intervalCapabilitiesReportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
+            {
+                return;
+            }
+
             var minimumInterval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[2..5]));
             var maximumInterval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[5..8]));
             var defaultInterval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[8..11]));
             var intervalStep = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[11..14]));
 
-            IntervalCapabilitiesReport?.Invoke(
-                this,
-                new WakeUpIntervalCapabilitiesEventArgs(sourceNodeId, minimumInterval, maximumInterval, defaultInterval, intervalStep));
+            var intervalCapabilitiesReport = new WakeUpIntervalCapabilitiesReport(minimumInterval, maximumInterval, defaultInterval, intervalStep);
+            callbackSource.TrySetResult(intervalCapabilitiesReport);
         }
 
         private void ProcessIntervalReport(byte sourceNodeId, byte[] commandClassBytes)
         {
             var destinationNodeId = commandClassBytes[5];
 
-            if (destinationNodeId != _client.NodeId)
+            if (destinationNodeId != Client.NodeId)
             {
                 _logger.Error("Received interval report from {SourceNodeId} intended for {DestinationNodeId}", sourceNodeId, destinationNodeId);
                 return;
             }
 
+            if (!_intervalReportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
+            {
+                return;
+            }
+
             var interval = TimeSpan.FromSeconds(EndianHelper.ToInt32(commandClassBytes[2..5]));
-            IntervalReport?.Invoke(this, new WakeUpIntervalEventArgs(sourceNodeId, interval));
+
+            callbackSource.TrySetResult(interval);
         }
     }
 }

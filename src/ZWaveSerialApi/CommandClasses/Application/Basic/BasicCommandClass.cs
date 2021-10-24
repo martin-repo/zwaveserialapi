@@ -14,7 +14,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.Basic
     {
         private readonly ILogger _logger;
 
-        public BasicCommandClass(ILogger logger)
+        public BasicCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
         }

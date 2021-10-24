@@ -17,7 +17,7 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.Frames;
     using ZWaveSerialApi.Utilities;
 
-    internal class ZWaveSerialPort : IZWaveSerialPort, IDisposable
+    internal class ZWaveSerialPort : IDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly ILogger _logger;
@@ -25,10 +25,12 @@ namespace ZWaveSerialApi
         private readonly AsyncManualResetEvent _portBytesAvailableEvent = new();
         private readonly SemaphoreSlim _portSemaphore = new(1, 1);
 
-        public ZWaveSerialPort(ILogger logger, string portName)
+        public ZWaveSerialPort(string portName, ILogger logger)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
 
+            // INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
+            // 4.2.1 RS-232 Serial port
             _port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
             _port.DataReceived += OnPortDataReceived;
             _port.Open();
@@ -38,8 +40,6 @@ namespace ZWaveSerialApi
             _port.DiscardInBuffer();
             _ = ReceiveFramesAsync(_cancellationTokenSource.Token);
         }
-
-        public event EventHandler<ControlFrameEventArgs>? ControlFrameReceived;
 
         public event EventHandler<DataFrameEventArgs>? DataFrameReceived;
 
@@ -86,9 +86,8 @@ namespace ZWaveSerialApi
                         continue;
                     }
 
-                    if (frame is ControlFrame controlFrame)
+                    if (frame.Preamble != FramePreamble.StartOfFrame)
                     {
-                        ControlFrameReceived?.Invoke(this, new ControlFrameEventArgs(controlFrame.Preamble));
                         continue;
                     }
 
@@ -129,11 +128,11 @@ namespace ZWaveSerialApi
                 case FramePreamble.Ack:
                 case FramePreamble.Nack:
                 case FramePreamble.Cancel:
-                    _logger.Debug("<< {FrameType}", framePreamble);
-                    frame = new ControlFrame((byte)framePreamble);
+                    _logger.Debug("<< {FramePreamble}", framePreamble);
+                    frame = new Frame(new[] { (byte)framePreamble });
                     return true;
                 default:
-                    _logger.Error("Invalid frame type {FrameType}", framePreamble);
+                    _logger.Error("Invalid frame preamble {FramePreamble}", framePreamble);
                     _port.DiscardInBuffer();
                     return false;
             }
@@ -179,7 +178,7 @@ namespace ZWaveSerialApi
         private void WriteControlFrame(FramePreamble framePreamble)
         {
             var frameBytes = new[] { (byte)framePreamble };
-            _logger.Debug(">> {FrameType}", framePreamble);
+            _logger.Debug(">> {FramePreamble}", framePreamble);
             _port.Write(frameBytes, 0, frameBytes.Length);
         }
     }

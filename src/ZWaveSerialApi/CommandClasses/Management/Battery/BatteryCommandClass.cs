@@ -14,7 +14,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.Battery
     {
         private readonly ILogger _logger;
 
-        public BatteryCommandClass(ILogger logger)
+        public BatteryCommandClass(ILogger logger, IZWaveSerialClient client)
+            : base(client)
         {
             _logger = logger.ForContext("ClassName", GetType().Name);
         }
