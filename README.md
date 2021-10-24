@@ -6,7 +6,7 @@ Since this API doesn't support Z-Wave protocol security it should not be used fo
 
 ## Install
 
-[![Nuget](https://img.shields.io/nuget/v/ZWaveSerialApi.Devices?style=for-the-badge)](https://www.nuget.org/packages/ZWaveSerialApi.Devices)
+[![Nuget](https://img.shields.io/nuget/vpre/ZWaveSerialApi.Devices?style=for-the-badge)](https://www.nuget.org/packages/ZWaveSerialApi.Devices)
 
 ## Not planned (ie. will most likely not happen)
 - Security (ie. S0 and S2 classed communication with nodes)
