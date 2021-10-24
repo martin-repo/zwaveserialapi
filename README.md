@@ -4,6 +4,10 @@ This API is for C#/.NET developers who want to create their own home automation 
 
 Since this API doesn't support Z-Wave protocol security it should not be used for home security, door locks, etc.
 
+## Install
+
+![Nuget](https://img.shields.io/nuget/v/ZWaveSerialApi?style=for-the-badge)
+
 ## Not planned (ie. will most likely not happen)
 - Security (ie. S0 and S2 classed communication with nodes)
 - Multi Channel
