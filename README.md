@@ -9,3 +9,28 @@ Since this API doesn't support Z-Wave protocol security it should not be used fo
 - Multi Channel
 - Associations (device signalling other device, bypassing controller)
 - Scenes
+
+## Example
+
+```cs
+private static async Task DeviceExample()
+{
+    using var devices = new ZWaveDevices("COM3");
+
+    var multiSensor = devices.GetDevices<AeotecMultiSensor6>().First();
+
+    // Alternative:
+    //var multiSensor = devices.GetDevice<AeotecMultiSensor6>("Kitchen");
+
+    // Register for unsolicited home security notifications
+    multiSensor.HomeSecurityMotionDetected += (sender, eventArgs) => { /* Motion detection started */ };
+    multiSensor.HomeSecurityIdle += (sender, eventArgs) => { /* Motion detection stopped */ };
+
+    // Get sensor values
+    var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius, CancellationToken.None);
+    Console.WriteLine($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");
+
+    var humidityReport = await multiSensor.GetHumidityAsync(HumidityScale.Percentage, CancellationToken.None);
+    Console.WriteLine($"Humidity: {humidityReport.Value}{humidityReport.Unit}");
+}
+```
