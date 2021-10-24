@@ -8,7 +8,7 @@ Since this API doesn't support Z-Wave protocol security it should not be used fo
 
 [![Nuget](https://img.shields.io/nuget/vpre/ZWaveSerialApi.Devices?style=for-the-badge)](https://www.nuget.org/packages/ZWaveSerialApi.Devices)
 
-## Planned (not yet in scope, no planned date)
+## Planned (not yet in scope, no release date)
 
 Use Z-Wave PC Controller software for now (installed via Silabs' [Simplicity Studio](https://www.silabs.com/developers/simplicity-studio)).
 - Get/set device configuration parameters
