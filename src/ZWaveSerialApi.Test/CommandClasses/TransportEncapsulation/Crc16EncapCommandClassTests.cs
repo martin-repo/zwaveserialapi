@@ -24,8 +24,8 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
 
         private Crc16EncapCommandClass _crc16EncapCommandClass;
 
-        [TestCase(1, "56-01-20-01-02-03-30-65", 16)]
-        public void ProcessCommandClassBytes_ShouldCallProcessCommandClassBytes(byte sourceNodeId, string bytesString, byte expectedValue)
+        [TestCase(1, "56-01-20-01-02-03-30-65")]
+        public void ProcessCommandClassBytes_ShouldCallProcessCommandClassBytes(byte sourceNodeId, string bytesString)
         {
             var unitTestCommandClass = new UnitTestCommandClass(_clientMock.Object);
             _clientMock.Setup(mock => mock.GetCommandClass(CommandClassType.Basic)).Returns(unitTestCommandClass);
@@ -41,7 +41,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
         public void Setup()
         {
             _clientMock = new Mock<IZWaveSerialClient>();
-            _clientMock.SetupGet(mock => mock.NodeId).Returns(1);
+            _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
             var loggerMock = new Mock<ILogger>();
             _crc16EncapCommandClass = new Crc16EncapCommandClass(loggerMock.Object, _clientMock.Object);

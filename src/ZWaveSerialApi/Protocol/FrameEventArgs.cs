@@ -1,20 +1,20 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="DataFrameEventArgs.cs" company="Martin Karlsson">
+// <copyright file="FrameEventArgs.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.Protocol
 {
     using System;
 
-    internal class DataFrameEventArgs : EventArgs
+    internal class FrameEventArgs : EventArgs
     {
-        public DataFrameEventArgs(IDataFrame dataFrame)
+        public FrameEventArgs(Frame frame)
         {
-            DataFrame = dataFrame;
+            Frame = frame;
         }
 
-        public IDataFrame DataFrame { get; }
+        public Frame Frame { get; }
     }
 }

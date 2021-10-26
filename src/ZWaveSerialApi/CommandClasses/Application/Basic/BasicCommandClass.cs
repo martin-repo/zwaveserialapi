@@ -36,7 +36,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Basic
                     Report?.Invoke(this, new BasicEventArgs(sourceNodeId, commandClassBytes[2]));
                     break;
                 default:
-                    _logger.Error("Unsupported basic command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                    _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                     break;
             }
         }

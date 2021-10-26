@@ -4,7 +4,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Test.Functions
+namespace ZWaveSerialApi.Test.Functions.ZWave
 {
     using System;
     using System.Linq;
@@ -18,11 +18,11 @@ namespace ZWaveSerialApi.Test.Functions
         [TestCase("56")]
         public void Create(string expectedFunctionArgsBytesString)
         {
-            var getSucNodeId = GetSucNodeIdTx.Create();
+            var functionTx = GetSucNodeIdTx.Create();
 
-            var functionArgsBytesString = BitConverter.ToString(getSucNodeId.FunctionArgsBytes);
+            var functionArgsBytesString = BitConverter.ToString(functionTx.FunctionArgsBytes);
 
-            Assert.That(getSucNodeId.HasReturnValue, Is.True);
+            Assert.That(functionTx.HasReturnValue, Is.True);
             Assert.That(functionArgsBytesString, Is.EqualTo(expectedFunctionArgsBytesString));
         }
 
@@ -32,8 +32,8 @@ namespace ZWaveSerialApi.Test.Functions
         {
             var returnValueBytes = returnValueBytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
-            var getSucNodeId = GetSucNodeIdTx.Create();
-            var returnValue = (GetSucNodeIdRx)getSucNodeId.CreateReturnValue(returnValueBytes);
+            var functionTx = GetSucNodeIdTx.Create();
+            var returnValue = (GetSucNodeIdRx)functionTx.CreateReturnValue(returnValueBytes);
 
             Assert.That(returnValue.NodeId, Is.EqualTo(expectedNodeId));
         }
@@ -44,8 +44,8 @@ namespace ZWaveSerialApi.Test.Functions
         {
             var returnValueBytes = returnValueBytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
-            var getSucNodeId = GetSucNodeIdTx.Create();
-            var isValidReturnValue = getSucNodeId.IsValidReturnValue(returnValueBytes);
+            var functionTx = GetSucNodeIdTx.Create();
+            var isValidReturnValue = functionTx.IsValidReturnValue(returnValueBytes);
 
             Assert.That(isValidReturnValue, Is.True);
         }

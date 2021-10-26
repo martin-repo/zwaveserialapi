@@ -4,7 +4,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Functions.ZWave
+namespace ZWaveSerialApi.Functions.ZWave.SendData
 {
     internal class SendDataAbortTx : FunctionTx
     {

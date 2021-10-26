@@ -9,7 +9,7 @@ namespace ZWaveSerialApi.Devices.Utilities
     using System;
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class ManufacturerSpecificAttribute : Attribute
+    internal class ManufacturerSpecificAttribute : Attribute
     {
         public ManufacturerSpecificAttribute(short manufacturerId, short productTypeId, short productId)
         {

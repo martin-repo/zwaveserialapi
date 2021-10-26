@@ -57,14 +57,14 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             var command = (MultilevelSensorCommand)commandClassBytes[1];
             if (command != MultilevelSensorCommand.Report)
             {
-                _logger.Error("Unsupported multilevel sensor command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                 return;
             }
 
             var sensorType = (MultilevelSensorType)commandClassBytes[2];
             if (!Enum.IsDefined(typeof(MultilevelSensorType), sensorType))
             {
-                _logger.Error("Unsupported multilevel sensor type {Type}", BitConverter.ToString(commandClassBytes, 2, 1));
+                _logger.Error("Unsupported type {Type}", BitConverter.ToString(commandClassBytes, 2, 1));
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             var scale = (Enum)Enum.ToObject(scaleEnumType, scaleValue);
             if (!Enum.IsDefined(scaleEnumType, scale))
             {
-                _logger.Error("Unsupported multilevel sensor {ScaleName} {ScaleValue}", scaleEnumType.Name, scaleValue);
+                _logger.Error("Unsupported {ScaleName} {ScaleValue}", scaleEnumType.Name, scaleValue);
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
                     rawValue = EndianHelper.ToInt32(commandClassBytes[4..8]);
                     return true;
                 default:
-                    _logger.Error("Unsupported multilevel sensor size {Size}", size);
+                    _logger.Error("Unsupported size {Size}", size);
                     rawValue = 0;
                     return false;
             }

@@ -8,7 +8,7 @@ namespace ZWaveSerialApi.Devices.Utilities
 {
     using System;
 
-    public class AttributeHelper
+    internal class AttributeHelper
     {
         public static string GetManufacturerName(Enum @enum)
         {

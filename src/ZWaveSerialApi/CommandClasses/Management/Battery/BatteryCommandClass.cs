@@ -33,7 +33,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.Battery
                     Report?.Invoke(this, new BatteryEventArgs(sourceNodeId, isLow, value));
                     break;
                 default:
-                    _logger.Error("Unsupported basic command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                    _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                     break;
             }
         }

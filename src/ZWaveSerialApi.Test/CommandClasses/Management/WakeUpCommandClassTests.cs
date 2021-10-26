@@ -9,6 +9,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
     using System;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using Moq;
 
@@ -31,141 +32,119 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             3600,
             3600,
             60)]
-        [TestCase(
-            2,
-            "84-0A-00-00-F0-00-0E-10-00-0E-10-00-00-3C",
-            240,
-            3600,
-            3600,
-            60)]
         public void IntervalCapabilitiesGetAsync_ShouldProcessData(
-            byte nodeId,
+            byte destinationNodeId,
             string bytesString,
             int expectedMinimumIntervalSeconds,
             int expectedMaximumIntervalSeconds,
             int expectedDefaultIntervalSeconds,
             int expectedIntervalStepSeconds)
         {
-            _clientMock.SetupGet(mock => mock.Timeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
-            var sendDataTask = _wakeUpCommandClass.IntervalCapabilitiesGetAsync(nodeId, CancellationToken.None);
-            _wakeUpCommandClass.ProcessCommandClassBytes(nodeId, bytes);
-            var result = sendDataTask.GetAwaiter().GetResult();
+            var reportTask = _wakeUpCommandClass.IntervalCapabilitiesGetAsync(destinationNodeId, CancellationToken.None);
+            _wakeUpCommandClass.ProcessCommandClassBytes(destinationNodeId, bytes);
+            var report = reportTask.GetAwaiter().GetResult();
 
-            Assert.That(result.MinimumInterval.TotalSeconds, Is.EqualTo(expectedMinimumIntervalSeconds));
-            Assert.That(result.MaximumInterval.TotalSeconds, Is.EqualTo(expectedMaximumIntervalSeconds));
-            Assert.That(result.DefaultInterval.TotalSeconds, Is.EqualTo(expectedDefaultIntervalSeconds));
-            Assert.That(result.IntervalStep.TotalSeconds, Is.EqualTo(expectedIntervalStepSeconds));
+            Assert.That(report.MinimumInterval.TotalSeconds, Is.EqualTo(expectedMinimumIntervalSeconds));
+            Assert.That(report.MaximumInterval.TotalSeconds, Is.EqualTo(expectedMaximumIntervalSeconds));
+            Assert.That(report.DefaultInterval.TotalSeconds, Is.EqualTo(expectedDefaultIntervalSeconds));
+            Assert.That(report.IntervalStep.TotalSeconds, Is.EqualTo(expectedIntervalStepSeconds));
         }
 
         [TestCase(1, "84-09")]
         public void IntervalCapabilitiesGetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            _clientMock.SetupGet(mock => mock.Timeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+
+            var bytesString = string.Empty;
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+                       .Returns(Task.FromResult(true));
 
             try
             {
-                CommandClassTestHelper.TestSendData(
-                    destinationNodeId,
-                    expectedBytesString,
-                    _clientMock,
-                    (nodeId, cancellationToken) => _wakeUpCommandClass.IntervalCapabilitiesGetAsync(nodeId, cancellationToken));
+                _wakeUpCommandClass.IntervalCapabilitiesGetAsync(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (TimeoutException timeoutException) when (timeoutException.Message == "Timeout waiting for response.")
             {
             }
+
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+
+            Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
 
-        /*
+        [TestCase(1, "84-06-00-0E-10-01", 3600)]
+        public void IntervalGetAsync_ShouldProcessData(byte destinationNodeId, string bytesString, int expectedIntervalSeconds)
+        {
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+
+            var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
+
+            var intervalTask = _wakeUpCommandClass.IntervalGetAsync(destinationNodeId, CancellationToken.None);
+            _wakeUpCommandClass.ProcessCommandClassBytes(destinationNodeId, bytes);
+            var interval = intervalTask.GetAwaiter().GetResult();
+
+            Assert.That(interval.TotalSeconds, Is.EqualTo(expectedIntervalSeconds));
+        }
+
         [TestCase(1, "84-05")]
         public void IntervalGetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            CommandClassTestHelper.TestSendData(
-                destinationNodeId,
-                expectedBytesString,
-                _clientMock,
-                (nodeId, cancellationToken) => _wakeUpCommandClass.IntervalGetAsync(nodeId, cancellationToken));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+
+            var bytesString = string.Empty;
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+                       .Returns(Task.FromResult(true));
+
+            try
+            {
+                _wakeUpCommandClass.IntervalGetAsync(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            catch (TimeoutException timeoutException) when (timeoutException.Message == "Timeout waiting for response.")
+            {
+            }
+
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+
+            Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
 
         [TestCase(1, 3600, "84-04-00-0E-10-01")]
-        [TestCase(2, 3600, "84-04-00-0E-10-02")]
+        [TestCase(2, 3600, "84-04-00-0E-10-01")]
         public void IntervalSetAsync_ShouldSendData(byte destinationNodeId, int intervalSeconds, string expectedBytesString)
         {
-            CommandClassTestHelper.TestSendData(
-                destinationNodeId,
-                expectedBytesString,
-                _clientMock,
-                (nodeId, cancellationToken) =>
-                    _wakeUpCommandClass.IntervalSetAsync(nodeId, TimeSpan.FromSeconds(intervalSeconds), cancellationToken));
+            var bytesString = string.Empty;
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+                       .Returns(Task.FromResult(true));
+
+            _wakeUpCommandClass.IntervalSetAsync(destinationNodeId, TimeSpan.FromSeconds(intervalSeconds), CancellationToken.None)
+                               .GetAwaiter()
+                               .GetResult();
+
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+
+            Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
 
         [TestCase(1, "84-08")]
         public void NoMoreInformationAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            CommandClassTestHelper.TestSendData(
-                destinationNodeId,
-                expectedBytesString,
-                _clientMock,
-                (nodeId, cancellationToken) => _wakeUpCommandClass.NoMoreInformationAsync(nodeId, cancellationToken));
-        }
+            var bytesString = string.Empty;
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+                       .Returns(Task.FromResult(true));
 
-        [TestCase(
-            1,
-            "84-0A-00-00-F0-00-0E-10-00-0E-10-00-00-3C",
-            240,
-            3600,
-            3600,
-            60)]
-        [TestCase(
-            2,
-            "84-0A-00-00-F0-00-0E-10-00-0E-10-00-00-3C",
-            240,
-            3600,
-            3600,
-            60)]
-        public void ProcessCommandClassBytes_ShouldInvokeIntervalCapabilitiesReportEvent(
-            byte sourceNodeId,
-            string bytesString,
-            int expectedMinimumIntervalSeconds,
-            int expectedMaximumIntervalSeconds,
-            int expectedDefaultIntervalSeconds,
-            int expectedIntervalStepSeconds)
-        {
-            var eventInvoked = false;
+            _wakeUpCommandClass.NoMoreInformationAsync(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
 
-            _wakeUpCommandClass.IntervalCapabilitiesReport += (_, eventArgs) =>
-            {
-                eventInvoked = true;
-                Assert.That(eventArgs.MinimumInterval.TotalSeconds, Is.EqualTo(expectedMinimumIntervalSeconds));
-                Assert.That(eventArgs.MaximumInterval.TotalSeconds, Is.EqualTo(expectedMaximumIntervalSeconds));
-                Assert.That(eventArgs.DefaultInterval.TotalSeconds, Is.EqualTo(expectedDefaultIntervalSeconds));
-                Assert.That(eventArgs.IntervalStep.TotalSeconds, Is.EqualTo(expectedIntervalStepSeconds));
-            };
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
 
-            var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
-            _wakeUpCommandClass.ProcessCommandClassBytes(sourceNodeId, bytes);
-
-            Assert.That(eventInvoked, Is.True);
-        }
-
-        [TestCase(1, "84-06-00-01-2C-01", 300)]
-        [TestCase(2, "84-06-00-01-2C-01", 300)]
-        public void ProcessCommandClassBytes_ShouldInvokeIntervalReportEvent(byte sourceNodeId, string bytesString, int expectedIntervalSeconds)
-        {
-            var eventInvoked = false;
-
-            _wakeUpCommandClass.IntervalReport += (_, eventArgs) =>
-            {
-                eventInvoked = true;
-                Assert.That(eventArgs.Interval.TotalSeconds, Is.EqualTo(expectedIntervalSeconds));
-            };
-
-            var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
-            _wakeUpCommandClass.ProcessCommandClassBytes(sourceNodeId, bytes);
-
-            Assert.That(eventInvoked, Is.True);
+            Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
 
         [TestCase(1, "84-07")]
@@ -184,13 +163,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
 
             Assert.That(eventInvoked, Is.True);
         }
-        */
 
         [SetUp]
         public void Setup()
         {
             _clientMock = new Mock<IZWaveSerialClient>();
-            _clientMock.SetupGet(mock => mock.NodeId).Returns(1);
+            _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
             var loggerMock = new Mock<ILogger>();
             _wakeUpCommandClass = new WakeUpCommandClass(loggerMock.Object, _clientMock.Object);

@@ -6,6 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses
 {
+    // NOTE! When adding an entry to this enum, be sure to also update ZWaveSerialApi.ZWaveSerialClient.CreateCommandClasses()
     public enum CommandClassType
     {
         // Application
@@ -19,6 +20,7 @@ namespace ZWaveSerialApi.CommandClasses
         Battery = 0x80,
         ManufacturerSpecific = 0x72,
         WakeUp = 0x84,
+        ZWavePlusInfo = 0x5E,
 
         // Transport encapsulation
         Crc16Encap = 0x56

@@ -1,19 +1,15 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IDataFrame.cs" company="Martin Karlsson">
+// <copyright file="Network.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.Devices.Settings
 {
-    using ZWaveSerialApi.Functions;
+    using System.Collections.Generic;
 
-    public interface IDataFrame : IFrame
+    public class Network
     {
-        FunctionType FunctionType { get; }
-
-        byte[] SerialCommandBytes { get; }
-
-        FrameType Type { get; }
+        public Dictionary<byte, NetworkDevice> Devices { get; set; } = new();
     }
 }

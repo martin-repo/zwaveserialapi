@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
 {
-    public enum MultilevelSwitchCommand
+    internal enum MultilevelSwitchCommand
     {
         Set = 0x01
     }

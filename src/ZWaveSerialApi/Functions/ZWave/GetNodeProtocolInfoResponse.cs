@@ -1,13 +1,10 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="ApplicationUpdateStatus.cs" company="Martin Karlsson">
+// <copyright file="GetNodeProtocolInfoResponse.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
 namespace ZWaveSerialApi.Functions.ZWave
 {
-    internal enum ApplicationUpdateStatus
-    {
-        NodeInfoReceived = 0x84
-    }
+    public record GetNodeProtocolInfoResponse(bool Listening);
 }

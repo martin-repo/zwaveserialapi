@@ -1,12 +1,12 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="FramePreamble.cs" company="Martin Karlsson">
+// <copyright file="MessageType.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.Protocol
 {
-    public enum FramePreamble
+    internal enum MessageType
     {
         StartOfFrame = 0x01,
         Ack = 0x06,

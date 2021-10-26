@@ -40,7 +40,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
             var command = (ManufacturerSpecificCommand)commandClassBytes[1];
             if (command != ManufacturerSpecificCommand.Report)
             {
-                _logger.Error("Unsupported manufacturer specific command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
             }
 
             if (!_reportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
@@ -52,8 +52,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
             var productTypeId = EndianHelper.ToInt16(commandClassBytes[4..6]);
             var productId = EndianHelper.ToInt16(commandClassBytes[6..8]);
 
-            var get = new ManufacturerSpecificReport(manufacturerId, productTypeId, productId);
-            callbackSource.TrySetResult(get);
+            var report = new ManufacturerSpecificReport(manufacturerId, productTypeId, productId);
+            callbackSource.TrySetResult(report);
         }
     }
 }

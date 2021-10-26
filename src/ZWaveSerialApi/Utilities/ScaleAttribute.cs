@@ -11,7 +11,7 @@ namespace ZWaveSerialApi.Utilities
 
     [DebuggerDisplay("{ScaleEnumType.Name,nq}")]
     [AttributeUsage(AttributeTargets.Field)]
-    public class ScaleAttribute : Attribute
+    internal class ScaleAttribute : Attribute
     {
         public ScaleAttribute(Type scaleEnumType)
         {

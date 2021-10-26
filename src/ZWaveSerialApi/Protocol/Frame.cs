@@ -1,30 +1,33 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="DataFrame.cs" company="Martin Karlsson">
+// <copyright file="Frame.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.Protocol
 {
     using System.Linq;
 
     using ZWaveSerialApi.Functions;
 
-    public class DataFrame : Frame, IDataFrame
+    internal class Frame
     {
-        public DataFrame(byte[] frameBytes)
-            : base(frameBytes)
+        public Frame(byte[] frameBytes)
         {
-            Length = Bytes[1];
-            Type = (FrameType)Bytes[2];
-            Checksum = Bytes[^1];
+            FrameBytes = frameBytes;
+
+            Length = FrameBytes[1];
+            Type = (FrameType)FrameBytes[2];
+            Checksum = FrameBytes[^1];
             IsChecksumValid = CalculateChecksum(frameBytes) == Checksum;
 
-            SerialCommandBytes = Bytes[3..^1];
+            SerialCommandBytes = FrameBytes[3..^1];
             FunctionType = (FunctionType)SerialCommandBytes[0];
         }
 
         public byte Checksum { get; }
+
+        public byte[] FrameBytes { get; }
 
         public FunctionType FunctionType { get; }
 
@@ -36,17 +39,17 @@ namespace ZWaveSerialApi.Frames
 
         public FrameType Type { get; }
 
-        public static DataFrame Create(FrameType frameType, byte[] functionArgsBytes)
+        public static Frame Create(FrameType frameType, byte[] functionArgsBytes)
         {
             var frameBytes = new byte[functionArgsBytes.Length + 4];
 
-            frameBytes[0] = (byte)FramePreamble.StartOfFrame;
+            frameBytes[0] = (byte)MessageType.StartOfFrame;
             frameBytes[1] = (byte)(frameBytes.Length - 2);
             frameBytes[2] = (byte)frameType;
             functionArgsBytes.CopyTo(frameBytes, 3);
             frameBytes[^1] = CalculateChecksum(frameBytes);
 
-            return new DataFrame(frameBytes);
+            return new Frame(frameBytes);
         }
 
         private static byte CalculateChecksum(byte[] frameBytes)

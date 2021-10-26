@@ -6,5 +6,5 @@
 
 namespace ZWaveSerialApi.Devices.Utilities
 {
-    public record ManufacturerSpecific(short ManufacturerId, short ProductTypeId, short ProductId);
+    internal record ManufacturerSpecific(short ManufacturerId, short ProductTypeId, short ProductId);
 }

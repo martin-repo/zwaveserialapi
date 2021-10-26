@@ -1,15 +1,14 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IFrame.cs" company="Martin Karlsson">
+// <copyright file="NodeType.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
 {
-    public interface IFrame
+    public enum NodeType
     {
-        byte[] Bytes { get; }
-
-        FramePreamble Preamble { get; }
+        Node = 0x00,
+        IpGateway = 0x02
     }
 }

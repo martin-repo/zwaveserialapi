@@ -9,7 +9,7 @@ namespace ZWaveSerialApi.Utilities
     using System;
     using System.Linq;
 
-    public class EndianHelper
+    internal class EndianHelper
     {
         public static byte[] GetBytes(int value, int byteLength = 4)
         {

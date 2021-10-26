@@ -12,13 +12,14 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
+    using ZWaveSerialApi.Devices.Settings;
 
     public class AeotecMultiSensor6 : Device
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
-        public AeotecMultiSensor6(ZWaveSerialClient client, byte nodeId)
-            : base(client, nodeId)
+        internal AeotecMultiSensor6(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
+            : base(client, nodeId, networkDevice)
         {
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
 
@@ -30,12 +31,12 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
         public event EventHandler? HomeSecurityMotionDetected;
 
-        public async Task<MultilevelSensorReport> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken)
+        public async Task<MultilevelSensorReport> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken = default)
         {
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.Humidity, scale, cancellationToken);
         }
 
-        public async Task<MultilevelSensorReport> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken)
+        public async Task<MultilevelSensorReport> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken = default)
         {
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.AirTemperature, scale, cancellationToken);
         }

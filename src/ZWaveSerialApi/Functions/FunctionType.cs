@@ -6,12 +6,14 @@
 
 namespace ZWaveSerialApi.Functions
 {
-    public enum FunctionType
+    internal enum FunctionType
     {
         ApplicationCommandHandlerBridge = 0xA8,
         ApplicationUpdate = 0x49,
+        GetNodeProtocolInfo = 0x41,
         GetSucNodeId = 0x56,
         MemoryGetId = 0x20,
+        RequestNodeInfo = 0x60,
         SendData = 0x13,
         SendDataAbort = 0x16,
         SerialApiGetInitData = 0x02,

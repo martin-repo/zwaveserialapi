@@ -57,7 +57,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
             EndianHelper.GetBytes((int)interval.TotalSeconds, 3).CopyTo(commandClassBytes, 2);
 
-            commandClassBytes[5] = destinationNodeId;
+            commandClassBytes[5] = Client.ControllerNodeId;
 
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
         }
@@ -86,7 +86,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
                     ProcessIntervalCapabilitiesReport(sourceNodeId, commandClassBytes);
                     break;
                 default:
-                    _logger.Error("Unsupported wake up command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                    _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                     return;
             }
         }
@@ -111,7 +111,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
         {
             var destinationNodeId = commandClassBytes[5];
 
-            if (destinationNodeId != Client.NodeId)
+            if (destinationNodeId != Client.ControllerNodeId)
             {
                 _logger.Error("Received interval report from {SourceNodeId} intended for {DestinationNodeId}", sourceNodeId, destinationNodeId);
                 return;

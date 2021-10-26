@@ -4,20 +4,33 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices
+namespace ZWaveSerialApi.Devices.Brands
 {
-    using System;
+    using ZWaveSerialApi.Devices.Settings;
 
     public abstract class Device
     {
-        protected Device(ZWaveSerialClient client, byte nodeId)
+        private readonly NetworkDevice _networkDevice;
+
+        protected Device(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
         {
             Client = client;
             NodeId = nodeId;
+            _networkDevice = networkDevice;
         }
 
-        internal ZWaveSerialClient Client { get;  }
+        public bool IsListening => _networkDevice.IsListening;
+
+        public string Location
+        {
+            get => _networkDevice.Location;
+            set => _networkDevice.Location = value;
+        }
+
+        public string Name => _networkDevice.Name;
 
         public byte NodeId { get; }
+
+        internal ZWaveSerialClient Client { get; }
     }
 }

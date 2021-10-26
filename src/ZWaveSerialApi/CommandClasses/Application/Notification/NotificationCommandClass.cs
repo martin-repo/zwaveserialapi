@@ -29,7 +29,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
             var command = (NotificationCommand)commandClassBytes[1];
             if (command != NotificationCommand.Report)
             {
-                _logger.Error("Unsupported notification command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                 return;
             }
 
@@ -40,7 +40,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
                     ProcessHomeSecurity(sourceNodeId, commandClassBytes);
                     break;
                 default:
-                    _logger.Error("Unsupported notification type {Type}", BitConverter.ToString(commandClassBytes, 2, 1));
+                    _logger.Error("Unsupported type {Type}", BitConverter.ToString(commandClassBytes, 2, 1));
                     break;
             }
         }

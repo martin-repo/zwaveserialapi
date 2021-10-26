@@ -44,7 +44,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
         {
-            _logger.Error("Unsupported multilevel switch command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+            _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
         }
     }
 }

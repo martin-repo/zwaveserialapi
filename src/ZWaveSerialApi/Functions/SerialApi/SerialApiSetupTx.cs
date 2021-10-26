@@ -6,10 +6,6 @@
 
 namespace ZWaveSerialApi.Functions.SerialApi
 {
-    /// <remarks>
-    /// INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
-    /// 7.6 Setup ZW_SendData callback parameters
-    /// </remarks>
     internal class SerialApiSetupTx : FunctionTx
     {
         private SerialApiSetupTx(byte[] functionArgsBytes)
@@ -24,7 +20,7 @@ namespace ZWaveSerialApi.Functions.SerialApi
             var serialCommandBytes = new byte[3];
 
             serialCommandBytes[0] = (byte)FunctionType.SerialApiSetup;
-            serialCommandBytes[1] = 0x02;
+            serialCommandBytes[1] = (byte)SerialApiSetupCommand.StatusReport;
             serialCommandBytes[2] = (byte)(enableStatusReport ? 1 : 0);
 
             return new SerialApiSetupTx(serialCommandBytes);

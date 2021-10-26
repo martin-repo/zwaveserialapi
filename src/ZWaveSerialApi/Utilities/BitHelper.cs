@@ -8,7 +8,7 @@ namespace ZWaveSerialApi.Utilities
 {
     using System;
 
-    public class BitHelper
+    internal class BitHelper
     {
         /// <summary>
         ///     0 0 0 0 0 0 0 1
@@ -45,8 +45,14 @@ namespace ZWaveSerialApi.Utilities
         /// </summary>
         public static int Bit6Mask = GetBitMask(7);
 
+        // TODO: unit test
         public static bool IsSet(byte @byte, int index)
         {
+            if (index is < 0 or > 7)
+            {
+                throw new IndexOutOfRangeException("Bit index must be between 0 and 7 (inclusive).");
+            }
+
             return (@byte & (1 << index)) != 0;
         }
 

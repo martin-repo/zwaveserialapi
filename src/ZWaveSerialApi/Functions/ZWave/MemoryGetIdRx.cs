@@ -6,18 +6,16 @@
 
 namespace ZWaveSerialApi.Functions.ZWave
 {
-    using ZWaveSerialApi.Utilities;
-
     internal class MemoryGetIdRx : FunctionRx
     {
         public MemoryGetIdRx(byte[] returnValueBytes)
             : base(FunctionType.MemoryGetId, returnValueBytes)
         {
-            HomeId = (uint)EndianHelper.ToInt32(returnValueBytes[1..5]);
+            HomeId = returnValueBytes[1..5];
             NodeId = returnValueBytes[5];
         }
 
-        public uint HomeId { get; }
+        public byte[] HomeId { get; }
 
         public byte NodeId { get; }
     }

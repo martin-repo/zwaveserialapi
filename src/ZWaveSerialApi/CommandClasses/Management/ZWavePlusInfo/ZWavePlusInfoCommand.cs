@@ -1,14 +1,14 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="FrameType.cs" company="Martin Karlsson">
+// <copyright file="ZWavePlusInfoCommand.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Frames
+namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
 {
-    public enum FrameType
+    internal enum ZWavePlusInfoCommand
     {
-        Request = 0x00,
-        Response = 0x01
+        Get = 0x01,
+        Report = 0x02
     }
 }

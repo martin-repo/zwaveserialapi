@@ -11,20 +11,15 @@ namespace ZWaveSerialApi
     using System.Threading.Tasks;
 
     using ZWaveSerialApi.CommandClasses;
-    using ZWaveSerialApi.Functions;
 
     public interface IZWaveSerialClient
     {
-        byte NodeId { get; }
-        TimeSpan Timeout { get; }
+        TimeSpan CallbackTimeout { get; }
 
-        T GetCommandClass<T>()
-            where T : CommandClass;
+        byte ControllerNodeId { get; }
 
         CommandClass GetCommandClass(CommandClassType type);
 
-        Task SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken);
-
-        Task<byte[]> SerialApiSetupAsync(bool enableStatusReport, CancellationToken cancellationToken);
+        Task SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken = default);
     }
 }

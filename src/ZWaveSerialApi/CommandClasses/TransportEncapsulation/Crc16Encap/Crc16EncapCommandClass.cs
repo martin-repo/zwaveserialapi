@@ -28,7 +28,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
             var command = (Crc16EncapCommand)commandClassBytes[1];
             if (command != Crc16EncapCommand.Crc16Encap)
             {
-                _logger.Error("Unsupported CRC 16 encap command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
+                _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                 return;
             }
 
@@ -36,7 +36,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
             var checksum = EndianHelper.ToInt16(commandClassBytes[^2..]);
             if (calculatedChecksum != checksum)
             {
-                _logger.Warning("Invalid CRC 16 encap checksum {Bytes}", BitConverter.ToString(commandClassBytes));
+                _logger.Warning("Invalid checksum {Bytes}", BitConverter.ToString(commandClassBytes));
                 return;
             }
 

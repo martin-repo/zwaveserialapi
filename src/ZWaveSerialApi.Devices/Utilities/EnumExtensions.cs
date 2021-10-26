@@ -9,7 +9,7 @@ namespace ZWaveSerialApi.Devices.Utilities
     using System;
     using System.Linq;
 
-    public static class EnumExtensions
+    internal static class EnumExtensions
     {
         public static TAttribute GetAttribute<TAttribute>(this Enum enumValue)
             where TAttribute : Attribute

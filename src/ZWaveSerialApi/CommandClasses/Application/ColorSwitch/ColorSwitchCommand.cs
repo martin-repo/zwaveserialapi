@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 {
-    public enum ColorSwitchCommand
+    internal enum ColorSwitchCommand
     {
         Set = 0x05
     }

@@ -1,16 +1,20 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="TransmitException.cs" company="Martin Karlsson">
+// <copyright file="DeviceEventArgs.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Functions.ZWave.SendData
+namespace ZWaveSerialApi.Devices.Brands
 {
     using System;
 
-    public class TransmitException : Exception
+    public class DeviceEventArgs : EventArgs
     {
-        public TransmitException(string message) : base(message) { }
+        public DeviceEventArgs(Device device)
+        {
+            Device = device;
+        }
 
+        public Device Device { get; }
     }
 }

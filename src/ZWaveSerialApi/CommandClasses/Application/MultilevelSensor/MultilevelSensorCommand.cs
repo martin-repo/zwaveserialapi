@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 {
-    public enum MultilevelSensorCommand
+    internal enum MultilevelSensorCommand
     {
         Get = 0x04,
         Report = 0x05

@@ -29,7 +29,7 @@ namespace ZWaveSerialApi.CommandClasses
             var callbackSource = callbackSources.GetOrAdd(destinationNodeId, _ => new TaskCompletionSource<T>());
 
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
-            if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.Timeout, cancellationToken)) == callbackSource.Task)
+            if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)) == callbackSource.Task)
             {
                 return callbackSource.Task.Result;
             }

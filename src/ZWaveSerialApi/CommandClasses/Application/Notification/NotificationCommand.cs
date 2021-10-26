@@ -6,7 +6,7 @@
 
 namespace ZWaveSerialApi.CommandClasses.Application.Notification
 {
-    public enum NotificationCommand
+    internal enum NotificationCommand
     {
         Report = 0x05
     }
