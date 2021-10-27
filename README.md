@@ -17,10 +17,10 @@ Install [`ZWaveSerialApi`](https://www.nuget.org/packages/ZWaveSerialApi) nuget 
 
 ### Getting started
 ```cs
-using var devices = new ZWaveDevices("COM3");
-await devices.ConnectAsync();
+using var network = new ZWaveNetwork("COM3");
+await network.ConnectAsync();
 
-var multiSensor = devices.GetDevices<AeotecMultiSensor6>().First();
+var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
 // Register for unsolicited home security notifications
 multiSensor.HomeSecurityMotionDetected += (_, _) =>
@@ -33,11 +33,11 @@ multiSensor.HomeSecurityIdle += (_, _) =>
 };
 
 // Get sensor values
-var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius);
-Console.WriteLine($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");
+var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius);
+Console.WriteLine($"Temperature: {temperature.Value}{temperature.Unit}");
 
-var humidityReport = await multiSensor.GetHumidityAsync(HumidityScale.Percentage);
-Console.WriteLine($"Humidity: {humidityReport.Value}{humidityReport.Unit}");
+var humidity = await multiSensor.GetHumidityAsync(HumidityScale.Percentage);
+Console.WriteLine($"Humidity: {humidity.Value}{humidity.Unit}");
 
 Console.ReadKey();
 ```
@@ -46,56 +46,70 @@ When connecting, the API will attempt to query all unknown devices. Devices that
 
 Cut down startup time by persisting the network information.
 ```cs
-using var devices = new ZWaveDevices("COM3");
-await devices.LoadAsync("ZWaveDevices.settings");
-await devices.ConnectAsync();
+using var network = new ZWaveNetwork("COM3");
+await network.LoadAsync("ZWaveNetwork.json");
+await network.ConnectAsync();
 
 // ... program logic ...
 
-await devices.SaveAsync("ZWaveDevices.settings");
+await network.SaveAsync("ZWaveNetwork.json");
 ```
 
 ### Using device location
 When using multiple devices of the same type, it helps to assign a location to each device.
 ```cs
-using var devices = new ZWaveDevices("COM3");
-await devices.ConnectAsync();
+using var network = new ZWaveNetwork("COM3");
+await network.ConnectAsync();
 
 // Set location
-var unknownMultiSensor = devices.GetDevices<AeotecMultiSensor6>().First();
+var unknownMultiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 unknownMultiSensor.Location = "Kitchen";
 
 // Get by location
-var kitchenMultiSensor = devices.GetDevice<AeotecMultiSensor6>("Kitchen");
+var kitchenMultiSensor = network.GetDevice<AeotecMultiSensor6>("Kitchen");
 ```
 
 ### Converting unsolicited values
 Units for unsolicited values are defined in the configuration of each device. If there is a need to use alternative units they can be converted manually.
 ```cs
-using var devices = new ZWaveDevices("COM3");
-await devices.ConnectAsync();
+using var network = new ZWaveNetwork("COM3");
+await network.ConnectAsync();
 
-static void OutputBothTemperatureUnits(MultilevelSensorReport temperatureReport)
+static void OutputBothTemperatureUnits(MultilevelSensorReport temperature)
 {
-    switch (temperatureReport.Scale)
+    switch (temperature.Scale)
     {
         case TemperatureScale.Celcius:
-            var farenheitValue = temperatureReport.Value * 9 / 5 + 32;
+            var farenheitValue = temperature.Value * 9 / 5 + 32;
             var (farenheitUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
-            Console.WriteLine($"Temperature = {temperatureReport.Value}{temperatureReport.Unit} / {farenheitValue}{farenheitUnit}");
+            Console.WriteLine($"Temperature = {temperature.Value}{temperature.Unit} / {farenheitValue}{farenheitUnit}");
             break;
         case TemperatureScale.Fahrenheit:
-            var celciousValue = (temperatureReport.Value - 32) * 5 / 9;
-            var (celciousUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
-            Console.WriteLine($"Temperature = {celciousValue}{celciousUnit} / {temperatureReport.Value}{temperatureReport.Unit}");
+            var celciusValue = (temperature.Value - 32) * 5 / 9;
+            var (celciusUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
+            Console.WriteLine($"Temperature = {celciusValue}{celciusUnit} / {temperature.Value}{temperature.Unit}");
             break;
     }
 }
 
-var aerq = devices.GetDevices<AeotecAerqSensor>().First();
+var aerq = network.GetDevices<AeotecAerqSensor>().First();
 aerq.TemperatureReport += (_, eventArgs) => OutputBothTemperatureUnits(eventArgs.Report);
 
 Console.ReadKey();
+```
+
+### Custom device types
+[Create an issue](https://github.com/martin-repo/zwaveserialapi/issues) for missing devices. Until they are part of the API, you can create a custom type. See [CustomMultiSensor6.cs](https://github.com/martin-repo/zwaveserialapi/blob/main/src/DeveloperTest/CustomMultiSensor6.cs) source code and below example for how it's used.
+```cs
+using var network = new ZWaveNetwork("COM3");
+
+var customDeviceType = new DeviceType(0x0086, 0x0002, 0x0064);
+network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultiSensor6(client, deviceState));
+
+await network.ConnectAsync();
+
+var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
+var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius);
 ```
 
 ## Planned
