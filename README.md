@@ -3,13 +3,13 @@
 
 # C# Z-Wave Serial API
 
-This API is for C#/.NET developers who want to create their own home automation tool.
+This API is for C#/.NET developers who want to create their own home automation tool using a Z-Wave USB stick, such as the [Aeotec Z-Stick 7](https://aeotec.com/z-wave-usb-stick/z-stick-7.html).
 
-Since this API doesn't support Z-Wave protocol security it should not be used for burglar alarms, door locks, etc.
+Since this API currently doesn't support Z-Wave protocol security it should not be used for burglar alarms, door locks, etc.
 
 ## Install
 
-Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices) nuget for a high-level, simple experience.
+Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices) nuget for a high-level, simple experience. (Examples below)
 
 Install [`ZWaveSerialApi`](https://www.nuget.org/packages/ZWaveSerialApi) nuget for a low-level, "Z-Wave domain knowledge required" experience.
 
