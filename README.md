@@ -1,17 +1,17 @@
-[![Build status](https://dev.azure.com/martin-repo/ZWaveSerialApi/_apis/build/status/ZWaveSerialApi)](https://dev.azure.com/martin-repo/ZWaveSerialApi/_build/latest?definitionId=1)
-[![Nuget](https://img.shields.io/nuget/vpre/ZWaveSerialApi.Devices?logo=nuget)](https://www.nuget.org/packages/ZWaveSerialApi.Devices)
+[![Build status](https://dev.azure.com/martin-repo/ZWaveSerialApi/_apis/build/status/ZWaveSerialApi)](https://dev.azure.com/martin-repo/ZWaveSerialApi/_build/latest?definitionId=1){:target="_blank"}
+[![Nuget](https://img.shields.io/nuget/vpre/ZWaveSerialApi.Devices?logo=nuget)](https://www.nuget.org/packages/ZWaveSerialApi.Devices){:target="_blank"}
 
 # C# Z-Wave Serial API
 
-This API is for C#/.NET developers who want to create their own home automation tool using a Z-Wave USB stick, such as the [Aeotec Z-Stick 7](https://aeotec.com/z-wave-usb-stick/z-stick-7.html).
+This API is for C#/.NET developers who want to create their own home automation tool using a Z-Wave USB stick, such as the [Aeotec Z-Stick 7](https://aeotec.com/z-wave-usb-stick/z-stick-7.html){:target="_blank"}.
 
 Since this API currently doesn't support Z-Wave protocol security it should not be used for burglar alarms, door locks, etc.
 
 ## Install
 
-Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices) nuget for a high-level, simple experience. (Examples below)
+Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices){:target="_blank"} nuget for a high-level, simple experience. (Examples below)
 
-Install [`ZWaveSerialApi`](https://www.nuget.org/packages/ZWaveSerialApi) nuget for a low-level, "Z-Wave domain knowledge required" experience.
+Install [`ZWaveSerialApi`](https://www.nuget.org/packages/ZWaveSerialApi){:target="_blank"} nuget for a low-level, "Z-Wave domain knowledge required" experience.
 
 ## Examples
 
@@ -99,7 +99,7 @@ Console.ReadKey();
 ```
 
 ### Custom device types
-[Create an issue](https://github.com/martin-repo/zwaveserialapi/issues) for missing devices. Until they are part of the API, you can create a custom type. See [CustomMultiSensor6.cs](https://github.com/martin-repo/zwaveserialapi/blob/main/src/DeveloperTest/CustomMultiSensor6.cs) source code and below example for how it's used.
+[Create an issue](https://github.com/martin-repo/zwaveserialapi/issues){:target="_blank"} for missing devices. Until they are part of the API, you can create a custom type. See [CustomMultiSensor6.cs](https://github.com/martin-repo/zwaveserialapi/blob/main/src/DeveloperTest/CustomMultiSensor6.cs){:target="_blank"} source code and below example for how it's used.
 ```cs
 using var network = new ZWaveNetwork("COM3");
 
