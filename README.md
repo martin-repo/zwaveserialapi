@@ -33,7 +33,7 @@ multiSensor.HomeSecurityIdle += (_, _) =>
 };
 
 // Get sensor values
-var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius);
+var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
 Console.WriteLine($"Temperature: {temperature.Value}{temperature.Unit}");
 
 var humidity = await multiSensor.GetHumidityAsync(HumidityScale.Percentage);
@@ -79,15 +79,15 @@ static void OutputBothTemperatureUnits(MultilevelSensorReport temperature)
 {
     switch (temperature.Scale)
     {
-        case TemperatureScale.Celcius:
+        case TemperatureScale.Celsius:
             var farenheitValue = temperature.Value * 9 / 5 + 32;
             var (farenheitUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
             Console.WriteLine($"Temperature = {temperature.Value}{temperature.Unit} / {farenheitValue}{farenheitUnit}");
             break;
         case TemperatureScale.Fahrenheit:
-            var celciusValue = (temperature.Value - 32) * 5 / 9;
-            var (celciusUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
-            Console.WriteLine($"Temperature = {celciusValue}{celciusUnit} / {temperature.Value}{temperature.Unit}");
+            var celsiusValue = (temperature.Value - 32) * 5 / 9;
+            var (celsiusUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
+            Console.WriteLine($"Temperature = {celsiusValue}{celsiusUnit} / {temperature.Value}{temperature.Unit}");
             break;
     }
 }
@@ -109,7 +109,7 @@ network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new 
 await network.ConnectAsync();
 
 var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
-var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celcius);
+var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
 ```
 
 ## Planned
