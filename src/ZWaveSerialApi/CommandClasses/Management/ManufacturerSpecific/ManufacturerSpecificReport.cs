@@ -8,17 +8,17 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
 {
     public class ManufacturerSpecificReport
     {
-        public ManufacturerSpecificReport(short manufacturerId, short productTypeId, short productId)
+        public ManufacturerSpecificReport(ushort manufacturerId, ushort productTypeId, ushort productId)
         {
             ManufacturerId = manufacturerId;
             ProductTypeId = productTypeId;
             ProductId = productId;
         }
 
-        public short ManufacturerId { get; }
+        public ushort ManufacturerId { get; }
 
-        public short ProductId { get; }
+        public ushort ProductId { get; }
 
-        public short ProductTypeId { get; }
+        public ushort ProductTypeId { get; }
     }
 }

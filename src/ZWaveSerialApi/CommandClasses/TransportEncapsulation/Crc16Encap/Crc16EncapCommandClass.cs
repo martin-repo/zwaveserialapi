@@ -20,7 +20,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
         public Crc16EncapCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<Crc16EncapCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)
@@ -33,10 +33,15 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
             }
 
             var calculatedChecksum = ZW_CheckCrc16(0x1D0F, commandClassBytes[..^2]);
-            var checksum = EndianHelper.ToInt16(commandClassBytes[^2..]);
+            var checksum = EndianHelper.ToUInt16(commandClassBytes[^2..]);
             if (calculatedChecksum != checksum)
             {
-                _logger.Warning("Invalid checksum {Bytes}", BitConverter.ToString(commandClassBytes));
+                var calculatedChecksumBytes = BitConverter.GetBytes(calculatedChecksum);
+                _logger.Warning(
+                    "Invalid checksum for {Bytes}. Expected {ExpectedBytes} but was {ActualBytes}.",
+                    BitConverter.ToString(commandClassBytes),
+                    BitConverter.ToString(calculatedChecksumBytes),
+                    BitConverter.ToString(commandClassBytes[^2..]));
                 return;
             }
 
@@ -46,9 +51,9 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
             encapCommandClass.ProcessCommandClassBytes(sourceNodeId, encapCommandClassBytes);
         }
 
-        private static short ZW_CheckCrc16(short crc, IEnumerable<byte> bytes)
+        private static ushort ZW_CheckCrc16(ushort crc, IEnumerable<byte> bytes)
         {
-            const short Poly = 0x1021;
+            const ushort Poly = 0x1021;
 
             foreach (var @byte in bytes)
             {

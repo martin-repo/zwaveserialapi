@@ -8,6 +8,8 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
 {
     internal class SendDataTx : FunctionTx
     {
+        public const TransmitOption DefaultTransmitOptions = TransmitOption.Ack | TransmitOption.AutoRoute | TransmitOption.Explore;
+
         private static byte nextCompletedFuncId = 1;
 
         private SendDataTx(byte[] functionArgsBytes, byte completedFuncId)

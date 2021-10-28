@@ -1,20 +1,21 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="DeviceEventArgs.cs" company="Martin Karlsson">
+// <copyright file="DeviceNameAttribute.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Brands
+namespace ZWaveSerialApi.Devices.Utilities
 {
     using System;
 
-    public class DeviceEventArgs : EventArgs
+    [AttributeUsage(AttributeTargets.Class)]
+    internal class DeviceNameAttribute : Attribute
     {
-        public DeviceEventArgs(Device device)
+        public DeviceNameAttribute(string name)
         {
-            Device = device;
+            Name = name;
         }
 
-        public Device Device { get; }
+        public string Name { get; }
     }
 }

@@ -19,7 +19,8 @@ namespace ZWaveSerialApi.Protocol
         private const int MaxAttempts = 1 + RetransmissionCount;
         private const int RetransmissionCount = 3;
 
-        private readonly TimeSpan _frameLostTimeout = TimeSpan.FromMilliseconds(1600);
+        // 6.2.2 Data frame delivery timeout @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
+        private readonly TimeSpan _frameDeliveryTimeout = TimeSpan.FromMilliseconds(1600);
         private readonly ILogger _logger;
         private readonly SerialPort _port;
         private readonly ManualResetEventSlim _portBytesAvailableEvent = new();
@@ -30,7 +31,7 @@ namespace ZWaveSerialApi.Protocol
 
         public ZWaveSerialPort(ILogger logger, string portName)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<ZWaveSerialPort>().ForContext(Constants.ClassName, GetType().Name);
 
             _port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
             _port.DataReceived += OnPortDataReceived;
@@ -45,7 +46,9 @@ namespace ZWaveSerialApi.Protocol
 
         private event EventHandler<MessageTypeEventArgs>? MessageTypeReceived;
 
-        public void Connect()
+        public bool IsConnected => _port.IsOpen;
+
+        public async Task ConnectAsync(CancellationToken cancellationToken)
         {
             if (_port.IsOpen)
             {
@@ -58,7 +61,10 @@ namespace ZWaveSerialApi.Protocol
             _logger.Debug("Serial port {PortName} opened.", _port.PortName);
 
             _cancellationTokenSource = new CancellationTokenSource();
-            _receiveFramesTask = Task.Run(() => ReceiveFrames(_cancellationTokenSource.Token));
+            _receiveFramesTask = Task.Run(() => ReceiveFrames(_cancellationTokenSource.Token), cancellationToken);
+
+            // 6.1.1 With hard reset @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
         }
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
@@ -93,13 +99,12 @@ namespace ZWaveSerialApi.Protocol
                     return;
                 }
 
-                _logger.Debug("Frame transmission failed after {Attempts} attempts.", MaxAttempts);
+                _logger.Information("Frame transmission failed after {Attempts} attempts.", MaxAttempts);
 
-                // TODO: Hard reset controller if port did not supply any data during transmit attempt
-
+                // 6.3 Retransmission @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
                 _logger.Debug("Reconnecting serial port.");
                 await DisconnectAsync(cancellationToken);
-                Connect();
+                await ConnectAsync(cancellationToken);
             }
         }
 
@@ -114,12 +119,6 @@ namespace ZWaveSerialApi.Protocol
             _port.Dispose();
         }
 
-        private TimeSpan GetRetransmissionDelay(int retransmissionCount, TimeSpan timeWaited)
-        {
-            var totalMilliseconds = 100 + retransmissionCount * 1000;
-            return TimeSpan.FromMilliseconds(totalMilliseconds - timeWaited.TotalMilliseconds);
-        }
-
         private void OnPortDataReceived(object sender, SerialDataReceivedEventArgs eventArgs)
         {
             _portBytesAvailableEvent.Set();
@@ -129,7 +128,10 @@ namespace ZWaveSerialApi.Protocol
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                WaitForPortContent(cancellationToken);
+                if (!WaitForPortContent(cancellationToken))
+                {
+                    continue;
+                }
 
                 if (!TryReadMessageType(out var messageType))
                 {
@@ -149,7 +151,7 @@ namespace ZWaveSerialApi.Protocol
 
                 if (!frame.IsChecksumValid)
                 {
-                    _logger.Warning("Invalid checksum.");
+                    _logger.Warning("Invalid frame checksum.");
                     WriteMessageType(MessageType.Nack, cancellationToken);
                     continue;
                 }
@@ -166,7 +168,7 @@ namespace ZWaveSerialApi.Protocol
 
             if (_port.BytesToRead == 0)
             {
-                _logger.Warning("Serial buffer does not contain frame data.");
+                _logger.Error("Serial buffer does not contain frame data.");
                 return false;
             }
 
@@ -178,7 +180,7 @@ namespace ZWaveSerialApi.Protocol
 
             if (_port.BytesToRead < frameLength)
             {
-                _logger.Warning("Serial buffer contains less data than indicated by frame length byte.");
+                _logger.Error("Serial buffer contains less data than indicated by frame length byte.");
                 _port.DiscardInBuffer();
                 return false;
             }
@@ -236,7 +238,7 @@ namespace ZWaveSerialApi.Protocol
                 {
                     await WriteFrameAsync(frame, cancellationToken);
 
-                    if (await Task.WhenAny(messageTypeSource.Task, Task.Delay(_frameLostTimeout, cancellationToken)) == messageTypeSource.Task
+                    if (await Task.WhenAny(messageTypeSource.Task, Task.Delay(_frameDeliveryTimeout, cancellationToken)) == messageTypeSource.Task
                         && messageTypeSource.Task.Result == MessageType.Ack)
                     {
                         return true;
@@ -247,22 +249,31 @@ namespace ZWaveSerialApi.Protocol
                     MessageTypeReceived -= MessageTypeHandler;
                 }
 
-                var retransmissionDelay = GetRetransmissionDelay(transmission, _frameLostTimeout);
+                // 6.3 Retransmission @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
+                var retransmissionDelay = TimeSpan.FromMilliseconds(100 + transmission * 1000);
                 await Task.Delay(retransmissionDelay, cancellationToken);
             }
 
             return false;
         }
 
-        private void WaitForPortContent(CancellationToken cancellationToken)
+        private bool WaitForPortContent(CancellationToken cancellationToken)
         {
             _portBytesAvailableEvent.Reset();
             if (_port.BytesToRead != 0)
             {
-                return;
+                return true;
             }
 
-            _portBytesAvailableEvent.Wait(cancellationToken);
+            try
+            {
+                _portBytesAvailableEvent.Wait(cancellationToken);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
         }
 
         private async Task WriteFrameAsync(Frame frame, CancellationToken cancellationToken)

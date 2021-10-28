@@ -30,23 +30,23 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             "31-05-01-42-04-D2",
             MultilevelSensorType.AirTemperature,
             12.34,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-01-62-04-D2",
             MultilevelSensorType.AirTemperature,
             1.234,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-01-4A-04-D2",
             MultilevelSensorType.AirTemperature,
             12.34,
-            "F",
+            "°F",
             "Fahrenheit",
             TemperatureScale.Fahrenheit)]
         [TestCase(
@@ -54,15 +54,15 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             "31-05-0B-42-04-D2",
             MultilevelSensorType.DewPoint,
             12.34,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-0B-4A-04-D2",
             MultilevelSensorType.DewPoint,
             12.34,
-            "F",
+            "°F",
             "Fahrenheit",
             TemperatureScale.Fahrenheit)]
         [TestCase(
@@ -121,9 +121,9 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             Assert.That(report.Scale, Is.EqualTo(scale));
         }
 
-        [TestCase(1, MultilevelSensorType.AirTemperature, TemperatureScale.Celcius, "31-04-01-00")]
+        [TestCase(1, MultilevelSensorType.AirTemperature, TemperatureScale.Celsius, "31-04-01-00")]
         [TestCase(1, MultilevelSensorType.AirTemperature, TemperatureScale.Fahrenheit, "31-04-01-08")]
-        [TestCase(1, MultilevelSensorType.DewPoint, TemperatureScale.Celcius, "31-04-0B-00")]
+        [TestCase(1, MultilevelSensorType.DewPoint, TemperatureScale.Celsius, "31-04-0B-00")]
         [TestCase(1, MultilevelSensorType.DewPoint, TemperatureScale.Fahrenheit, "31-04-0B-08")]
         [TestCase(1, MultilevelSensorType.Humidity, HumidityScale.Percentage, "31-04-05-00")]
         [TestCase(1, MultilevelSensorType.Illuminance, IlluminanceScale.Percentage, "31-04-03-00")]
@@ -138,7 +138,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
 
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
@@ -150,7 +150,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             {
             }
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -160,23 +160,23 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             "31-05-01-42-04-D2",
             MultilevelSensorType.AirTemperature,
             12.34,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-01-62-04-D2",
             MultilevelSensorType.AirTemperature,
             1.234,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-01-4A-04-D2",
             MultilevelSensorType.AirTemperature,
             12.34,
-            "F",
+            "°F",
             "Fahrenheit",
             TemperatureScale.Fahrenheit)]
         [TestCase(
@@ -184,15 +184,15 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             "31-05-0B-42-04-D2",
             MultilevelSensorType.DewPoint,
             12.34,
-            "C",
-            "Celcius",
-            TemperatureScale.Celcius)]
+            "°C",
+            "Celsius",
+            TemperatureScale.Celsius)]
         [TestCase(
             1,
             "31-05-0B-4A-04-D2",
             MultilevelSensorType.DewPoint,
             12.34,
-            "F",
+            "°F",
             "Fahrenheit",
             TemperatureScale.Fahrenheit)]
         [TestCase(
@@ -257,10 +257,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
         [SetUp]
         public void Setup()
         {
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
-            var loggerMock = new Mock<ILogger>();
             _multilevelSensorCommandClass = new MultilevelSensorCommandClass(loggerMock.Object, _clientMock.Object);
         }
     }

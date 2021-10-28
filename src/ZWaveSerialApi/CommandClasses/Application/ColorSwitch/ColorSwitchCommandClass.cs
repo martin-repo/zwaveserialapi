@@ -22,7 +22,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
         public ColorSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<ColorSwitchCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task SetAsync(

@@ -1,20 +1,20 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="MessageTypeEventArgs.cs" company="Martin Karlsson">
+// <copyright file="DeviceEventArgs.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Protocol
+namespace ZWaveSerialApi.Devices.Device
 {
     using System;
 
-    internal class MessageTypeEventArgs : EventArgs
+    public class DeviceEventArgs : EventArgs
     {
-        public MessageTypeEventArgs(MessageType messageType)
+        public DeviceEventArgs(IDevice device)
         {
-            MessageType = messageType;
+            Device = device;
         }
 
-        public MessageType MessageType { get; }
+        public IDevice Device { get; }
     }
 }

@@ -14,12 +14,15 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
     using ZWaveSerialApi.CommandClasses.Application;
     using ZWaveSerialApi.CommandClasses.Application.ColorSwitch;
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch;
-    using ZWaveSerialApi.Devices.Settings;
+    using ZWaveSerialApi.Devices.Device;
+    using ZWaveSerialApi.Devices.Utilities;
 
+    [DeviceName("Aeotec LED Bulb 6 MultiColor")]
+    [DeviceType(0x0371, 0x0003, 0x0002)]
     public class AeotecLedBulb6MultiColor : Device
     {
-        internal AeotecLedBulb6MultiColor(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
-            : base(client, nodeId, networkDevice)
+        internal AeotecLedBulb6MultiColor(IZWaveSerialClient client, DeviceState deviceState)
+            : base(client, deviceState)
         {
         }
 

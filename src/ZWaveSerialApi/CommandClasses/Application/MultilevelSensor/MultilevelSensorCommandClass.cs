@@ -23,7 +23,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
         public MultilevelSensorCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<MultilevelSensorCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public event EventHandler<MultilevelSensorEventArgs>? Report;

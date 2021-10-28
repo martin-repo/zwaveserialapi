@@ -10,10 +10,10 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 
     public enum TemperatureScale
     {
-        [Unit("C", "Celcius")]
-        Celcius = 0x00,
+        [Unit("°C", "Celsius")]
+        Celsius = 0x00,
 
-        [Unit("F", "Fahrenheit")]
+        [Unit("°F", "Fahrenheit")]
         Fahrenheit = 0x01
     }
 }

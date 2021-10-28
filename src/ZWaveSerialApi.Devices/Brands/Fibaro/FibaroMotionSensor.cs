@@ -9,12 +9,15 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
     using System;
 
     using ZWaveSerialApi.CommandClasses.Application.Notification;
-    using ZWaveSerialApi.Devices.Settings;
+    using ZWaveSerialApi.Devices.Device;
+    using ZWaveSerialApi.Devices.Utilities;
 
+    [DeviceName("Fibaro Motion Sensor")]
+    [DeviceType(0x010F, 0x0801, 0x1002)]
     public class FibaroMotionSensor : Device
     {
-        internal FibaroMotionSensor(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
-            : base(client, nodeId, networkDevice)
+        internal FibaroMotionSensor(IZWaveSerialClient client, DeviceState deviceState)
+            : base(client, deviceState)
         {
             var notification = Client.GetCommandClass<NotificationCommandClass>();
             notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;

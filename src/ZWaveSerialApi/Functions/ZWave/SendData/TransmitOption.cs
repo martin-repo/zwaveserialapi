@@ -12,7 +12,7 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
     /// ZW_transport_api.h
     /// </remarks>
     [Flags]
-    internal enum TransmitOption
+    public enum TransmitOption
     {
         Ack = 0x01,
         LowPower = 0x02,

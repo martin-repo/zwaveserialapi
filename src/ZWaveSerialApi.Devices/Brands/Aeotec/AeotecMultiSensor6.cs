@@ -12,14 +12,17 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
-    using ZWaveSerialApi.Devices.Settings;
+    using ZWaveSerialApi.Devices.Device;
+    using ZWaveSerialApi.Devices.Utilities;
 
+    [DeviceName("Aeotec MultiSensor 6")]
+    [DeviceType(0x0086, 0x0002, 0x0064)]
     public class AeotecMultiSensor6 : Device
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
-        internal AeotecMultiSensor6(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
-            : base(client, nodeId, networkDevice)
+        internal AeotecMultiSensor6(IZWaveSerialClient client, DeviceState deviceState)
+            : base(client, deviceState)
         {
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
 

@@ -19,7 +19,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
         public MultilevelSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<MultilevelSwitchCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task SetAsync(

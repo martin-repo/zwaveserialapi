@@ -19,7 +19,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
         public NotificationCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<NotificationCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public event EventHandler<HomeSecurityEventArgs>? HomeSecurityStateChanged;

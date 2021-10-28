@@ -23,7 +23,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
         public ManufacturerSpecificCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<ManufacturerSpecificCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task<ManufacturerSpecificReport> GetAsync(byte destinationNodeId, CancellationToken cancellationToken)
@@ -48,9 +48,9 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
                 return;
             }
 
-            var manufacturerId = EndianHelper.ToInt16(commandClassBytes[2..4]);
-            var productTypeId = EndianHelper.ToInt16(commandClassBytes[4..6]);
-            var productId = EndianHelper.ToInt16(commandClassBytes[6..8]);
+            var manufacturerId = EndianHelper.ToUInt16(commandClassBytes[2..4]);
+            var productTypeId = EndianHelper.ToUInt16(commandClassBytes[4..6]);
+            var productId = EndianHelper.ToUInt16(commandClassBytes[6..8]);
 
             var report = new ManufacturerSpecificReport(manufacturerId, productTypeId, productId);
             callbackSource.TrySetResult(report);

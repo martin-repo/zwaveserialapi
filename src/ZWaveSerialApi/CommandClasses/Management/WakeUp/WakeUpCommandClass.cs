@@ -13,6 +13,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
     using Serilog;
 
+    using ZWaveSerialApi.Functions.ZWave.SendData;
     using ZWaveSerialApi.Utilities;
 
     public class WakeUpCommandClass : CommandClass
@@ -26,7 +27,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
         public WakeUpCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<WakeUpCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public event EventHandler<WakeUpNotificationEventArgs>? Notification;
@@ -68,7 +69,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.NoMoreInformation;
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            // Only use TransmitOption.Ack since node is known after having sent wake up notification.
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, TransmitOption.Ack, cancellationToken);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

@@ -37,7 +37,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
-            var reportTask = _manufacturerSpecificCommandClass.GetAsync(destinationNodeId, CancellationToken.None);
+            var reportTask = _manufacturerSpecificCommandClass.GetAsync(destinationNodeId, It.IsAny<CancellationToken>());
             _manufacturerSpecificCommandClass.ProcessCommandClassBytes(destinationNodeId, bytes);
             var report = reportTask.GetAwaiter().GetResult();
 
@@ -52,7 +52,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
 
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
@@ -64,7 +64,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             {
             }
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -72,10 +72,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [SetUp]
         public void Setup()
         {
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
-            var loggerMock = new Mock<ILogger>();
             _manufacturerSpecificCommandClass = new ManufacturerSpecificCommandClass(loggerMock.Object, _clientMock.Object);
         }
     }

@@ -25,7 +25,20 @@ namespace ZWaveSerialApi.Test.Utilities
             Assert.That(byteArrayString, Is.EqualTo(expectedByteArrayString));
         }
 
+        [TestCase((ushort)513, "02-01")]
+        public void GetBytes_WhenUInt16(ushort value, string expectedByteArrayString)
+        {
+            var byteArray = EndianHelper.GetBytes(value);
+            var byteArrayString = BitConverter.ToString(byteArray);
+
+            Assert.That(byteArrayString, Is.EqualTo(expectedByteArrayString));
+        }
+
         [TestCase("02-01", 513)]
+        [TestCase("7F-FF", 32767)]
+        [TestCase("80-00", -32768)]
+        [TestCase("80-01", -32767)]
+        [TestCase("FF-FF", -1)]
         public void ToInt16(string byteArrayString, int expectedValue)
         {
             var byteArray = byteArrayString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
@@ -42,6 +55,20 @@ namespace ZWaveSerialApi.Test.Utilities
             var byteArray = byteArrayString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
             var value = EndianHelper.ToInt32(byteArray);
+
+            Assert.That(value, Is.EqualTo(expectedValue));
+        }
+
+        [TestCase("02-01", 513)]
+        [TestCase("7F-FF", 32767)]
+        [TestCase("80-00", 32768)]
+        [TestCase("80-01", 32769)]
+        [TestCase("FF-FF", 65535)]
+        public void ToUInt16(string byteArrayString, int expectedValue)
+        {
+            var byteArray = byteArrayString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
+
+            var value = EndianHelper.ToUInt16(byteArray);
 
             Assert.That(value, Is.EqualTo(expectedValue));
         }

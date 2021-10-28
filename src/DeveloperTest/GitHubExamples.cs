@@ -1,0 +1,113 @@
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="GitHubExamples.cs" company="Martin Karlsson">
+//   Copyright (c) Martin Karlsson. All rights reserved.
+// </copyright>
+// -------------------------------------------------------------------------------------------------
+
+namespace DeveloperTest
+{
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
+    using ZWaveSerialApi.Devices;
+    using ZWaveSerialApi.Devices.Brands.Aeotec;
+    using ZWaveSerialApi.Devices.Device;
+    using ZWaveSerialApi.Utilities;
+
+    internal class GitHubExamples
+    {
+        public async Task CustomDeviceType()
+        {
+            using var network = new ZWaveNetwork("COM3");
+
+            var customDeviceType = new DeviceType(0x0086, 0x0002, 0x0064);
+            network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultiSensor6(client, deviceState));
+
+            await network.ConnectAsync();
+
+            var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
+            var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
+        }
+
+        public async Task GettingStarted()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+
+            // Register for unsolicited home security notifications
+            multiSensor.HomeSecurityMotionDetected += (_, _) =>
+            {
+                /* Motion detection started */
+            };
+            multiSensor.HomeSecurityIdle += (_, _) =>
+            {
+                /* Motion detection stopped */
+            };
+
+            // Get sensor values
+            var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
+            Console.WriteLine($"Temperature: {temperature.Value}{temperature.Unit}");
+
+            var humidity = await multiSensor.GetHumidityAsync(HumidityScale.Percentage);
+            Console.WriteLine($"Humidity: {humidity.Value}{humidity.Unit}");
+
+            Console.ReadKey();
+        }
+
+        public async Task Location()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            // Set location
+            var unknownMultiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+            unknownMultiSensor.Location = "Kitchen";
+
+            // Get by location
+            var kitchenMultiSensor = network.GetDevice<AeotecMultiSensor6>("Kitchen");
+        }
+
+        public async Task Settings()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.LoadAsync("ZWaveNetwork.json");
+            await network.ConnectAsync();
+
+            // ... program logic ...
+
+            await network.SaveAsync("ZWaveNetwork.json");
+        }
+
+        public async Task ValueConvert()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            static void OutputBothTemperatureUnits(MultilevelSensorReport temperature)
+            {
+                switch (temperature.Scale)
+                {
+                    case TemperatureScale.Celsius:
+                        var farenheitValue = temperature.Value * 9 / 5 + 32;
+                        var (farenheitUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
+                        Console.WriteLine($"Temperature = {temperature.Value}{temperature.Unit} / {farenheitValue}{farenheitUnit}");
+                        break;
+                    case TemperatureScale.Fahrenheit:
+                        var celsiusValue = (temperature.Value - 32) * 5 / 9;
+                        var (celsiusUnit, _) = AttributeHelper.GetUnit(TemperatureScale.Fahrenheit);
+                        Console.WriteLine($"Temperature = {celsiusValue}{celsiusUnit} / {temperature.Value}{temperature.Unit}");
+                        break;
+                }
+            }
+
+            var aerq = network.GetDevices<AeotecAerqSensor>().First();
+            aerq.TemperatureReport += (_, eventArgs) => OutputBothTemperatureUnits(eventArgs.Report);
+
+            Console.ReadKey();
+        }
+    }
+}

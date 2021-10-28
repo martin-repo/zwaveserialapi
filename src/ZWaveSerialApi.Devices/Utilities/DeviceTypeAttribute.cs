@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="AttributeHelper.cs" company="Martin Karlsson">
+// <copyright file="DeviceTypeAttribute.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
@@ -7,20 +7,17 @@
 namespace ZWaveSerialApi.Devices.Utilities
 {
     using System;
-    using System.Reflection;
 
     using ZWaveSerialApi.Devices.Device;
 
-    internal class AttributeHelper
+    [AttributeUsage(AttributeTargets.Class)]
+    internal class DeviceTypeAttribute : Attribute
     {
-        public static string GetDeviceName(Type type)
+        public DeviceTypeAttribute(ushort manufacturerId, ushort productTypeId, ushort productId)
         {
-            return type.GetCustomAttribute<DeviceNameAttribute>()!.Name;
+            DeviceType = new DeviceType(manufacturerId, productTypeId, productId);
         }
 
-        public static DeviceType GetDeviceType(Type type)
-        {
-            return type.GetCustomAttribute<DeviceTypeAttribute>()!.DeviceType;
-        }
+        public DeviceType DeviceType { get; }
     }
 }

@@ -1,15 +1,13 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="HomeSecurityState.cs" company="Martin Karlsson">
+// <copyright file="Constants.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.CommandClasses.Application.Notification
+namespace ZWaveSerialApi
 {
-    public enum HomeSecurityState
+    public static class Constants
     {
-        Idle = 0x00,
-        CoverTampering = 0x03,
-        MotionDetection = 0x08
+        public const string ClassName = "ClassName";
     }
 }

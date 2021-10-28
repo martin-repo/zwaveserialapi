@@ -11,17 +11,19 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
     using System.Threading.Tasks;
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
-    using ZWaveSerialApi.Devices.Settings;
+    using ZWaveSerialApi.Devices.Device;
+    using ZWaveSerialApi.Devices.Utilities;
 
+    [DeviceName("Aeotec aërQ Temperature & Humidity Sensor")]
+    [DeviceType(0x0371, 0x0002, 0x0009)]
     public class AeotecAerqSensor : Device
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
-        internal AeotecAerqSensor(ZWaveSerialClient client, byte nodeId, NetworkDevice networkDevice)
-            : base(client, nodeId, networkDevice)
+        internal AeotecAerqSensor(IZWaveSerialClient client, DeviceState deviceState)
+            : base(client, deviceState)
         {
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
-
             _multilevelSensor.Report += OnMultiLevelSensorReport;
         }
 

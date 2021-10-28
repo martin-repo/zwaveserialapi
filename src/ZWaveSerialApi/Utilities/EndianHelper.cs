@@ -9,7 +9,7 @@ namespace ZWaveSerialApi.Utilities
     using System;
     using System.Linq;
 
-    internal class EndianHelper
+    public class EndianHelper
     {
         public static byte[] GetBytes(int value, int byteLength = 4)
         {
@@ -25,6 +25,11 @@ namespace ZWaveSerialApi.Utilities
                 default:
                     throw new ArgumentException("Byte length must be 3 or 4.", nameof(byteLength));
             }
+        }
+
+        public static byte[] GetBytes(ushort value)
+        {
+            return BitConverter.GetBytes(value).Reverse().ToArray();
         }
 
         public static short ToInt16(byte[] bytes)
@@ -50,6 +55,16 @@ namespace ZWaveSerialApi.Utilities
                 default:
                     throw new ArgumentException("Bytes must be 3 or 4 in length.", nameof(bytes));
             }
+        }
+
+        public static ushort ToUInt16(byte[] bytes)
+        {
+            if (bytes.Length != 2)
+            {
+                throw new ArgumentException("Bytes length must be 2.", nameof(bytes));
+            }
+
+            return BitConverter.ToUInt16(bytes.Reverse().ToArray());
         }
     }
 }

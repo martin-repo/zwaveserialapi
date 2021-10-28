@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZWaveSerialApi.Test", "ZWav
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZWaveSerialApi.Devices", "ZWaveSerialApi.Devices\ZWaveSerialApi.Devices.csproj", "{6B0D6799-E857-49C8-8A94-7121A41642F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeveloperTest", "DeveloperTest\DeveloperTest.csproj", "{AE65EE7C-483D-41DA-B901-A1AE9F0426E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZWaveSerialApi.Devices.Test", "ZWaveSerialApi.Devices.Test\ZWaveSerialApi.Devices.Test.csproj", "{2633F20F-F077-453C-B4E9-46B9267D4D4D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeveloperTest", "DeveloperTest\DeveloperTest.csproj", "{AE65EE7C-483D-41DA-B901-A1AE9F0426E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{6B0D6799-E857-49C8-8A94-7121A41642F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B0D6799-E857-49C8-8A94-7121A41642F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B0D6799-E857-49C8-8A94-7121A41642F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2633F20F-F077-453C-B4E9-46B9267D4D4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2633F20F-F077-453C-B4E9-46B9267D4D4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2633F20F-F077-453C-B4E9-46B9267D4D4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2633F20F-F077-453C-B4E9-46B9267D4D4D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE65EE7C-483D-41DA-B901-A1AE9F0426E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AE65EE7C-483D-41DA-B901-A1AE9F0426E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE65EE7C-483D-41DA-B901-A1AE9F0426E1}.Release|Any CPU.ActiveCfg = Release|Any CPU

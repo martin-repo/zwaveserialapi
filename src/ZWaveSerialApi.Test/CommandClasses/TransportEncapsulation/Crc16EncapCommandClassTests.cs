@@ -24,11 +24,15 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
 
         private Crc16EncapCommandClass _crc16EncapCommandClass;
 
-        [TestCase(1, "56-01-20-01-02-03-30-65")]
-        public void ProcessCommandClassBytes_ShouldCallProcessCommandClassBytes(byte sourceNodeId, string bytesString)
+        [TestCase(1, "56-01-20-02-4D-26", CommandClassType.Basic)]
+        [TestCase(1, "56-01-84-07-CC-39", CommandClassType.WakeUp)]
+        public void ProcessCommandClassBytes_ShouldCallProcessCommandClassBytes(
+            byte sourceNodeId,
+            string bytesString,
+            CommandClassType expectedCommandClassType)
         {
             var unitTestCommandClass = new UnitTestCommandClass(_clientMock.Object);
-            _clientMock.Setup(mock => mock.GetCommandClass(CommandClassType.Basic)).Returns(unitTestCommandClass);
+            _clientMock.Setup(mock => mock.GetCommandClass(expectedCommandClassType)).Returns(unitTestCommandClass);
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
             _crc16EncapCommandClass.ProcessCommandClassBytes(sourceNodeId, bytes);
@@ -40,10 +44,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
         [SetUp]
         public void Setup()
         {
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
-            var loggerMock = new Mock<ILogger>();
             _crc16EncapCommandClass = new Crc16EncapCommandClass(loggerMock.Object, _clientMock.Object);
         }
 

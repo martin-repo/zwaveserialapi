@@ -18,6 +18,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
     using Serilog;
 
     using ZWaveSerialApi.CommandClasses.Management.WakeUp;
+    using ZWaveSerialApi.Functions.ZWave.SendData;
 
     public class WakeUpCommandClassTests
     {
@@ -60,7 +61,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
 
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
@@ -72,7 +73,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             {
             }
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -97,7 +98,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
 
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
@@ -109,7 +110,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             {
             }
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -119,7 +120,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         public void IntervalSetAsync_ShouldSendData(byte destinationNodeId, int intervalSeconds, string expectedBytesString)
         {
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
@@ -127,7 +128,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
                                .GetAwaiter()
                                .GetResult();
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -136,13 +137,20 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         public void NoMoreInformationAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
-                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), TransmitOption.Ack, It.IsAny<CancellationToken>()))
+                       .Callback<byte, byte[], TransmitOption, CancellationToken>(
+                           (
+                               _,
+                               frameBytes,
+                               _,
+                               _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
             _wakeUpCommandClass.NoMoreInformationAsync(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(
+                mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), TransmitOption.Ack, It.IsAny<CancellationToken>()),
+                Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -167,10 +175,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [SetUp]
         public void Setup()
         {
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
-            var loggerMock = new Mock<ILogger>();
             _wakeUpCommandClass = new WakeUpCommandClass(loggerMock.Object, _clientMock.Object);
         }
     }

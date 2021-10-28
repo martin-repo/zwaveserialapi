@@ -1,15 +1,17 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="HomeSecurityState.cs" company="Martin Karlsson">
+// <copyright file="NetworkSettings.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.CommandClasses.Application.Notification
+namespace ZWaveSerialApi.Devices
 {
-    public enum HomeSecurityState
+    using System.Collections.Generic;
+
+    using ZWaveSerialApi.Devices.Device;
+
+    public class NetworkSettings
     {
-        Idle = 0x00,
-        CoverTampering = 0x03,
-        MotionDetection = 0x08
+        public List<DeviceState> DeviceStates { get; set; } = new();
     }
 }

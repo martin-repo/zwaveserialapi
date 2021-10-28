@@ -55,13 +55,13 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             var duration = defaultDuration ? DurationType.Default : DurationType.Instant;
 
             var bytesString = string.Empty;
-            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None))
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
                        .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
                        .Returns(Task.FromResult(true));
 
             _colorSwitchCommandClass.SetAsync(destinationNodeId, colorComponents, duration, CancellationToken.None).GetAwaiter().GetResult();
 
-            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), CancellationToken.None), Times.Once);
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.That(bytesString, Is.EqualTo(expectedBytesString));
         }
@@ -69,10 +69,12 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
         [SetUp]
         public void Setup()
         {
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
 
-            var loggerMock = new Mock<ILogger>();
             _colorSwitchCommandClass = new ColorSwitchCommandClass(loggerMock.Object, _clientMock.Object);
         }
     }

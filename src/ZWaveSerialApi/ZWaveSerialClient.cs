@@ -42,7 +42,7 @@ namespace ZWaveSerialApi
 
         public ZWaveSerialClient(ILogger logger, string portName)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<ZWaveSerialClient>().ForContext(Constants.ClassName, GetType().Name);
 
             _port = new ZWaveSerialPort(logger, portName);
             _port.FrameReceived += OnFrameReceived;
@@ -58,12 +58,15 @@ namespace ZWaveSerialApi
 
         public byte[] DeviceNodeIds { get; private set; }
 
+        public bool IsConnected => _port.IsConnected;
+
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
-            _port.Connect();
+            await _port.ConnectAsync(cancellationToken);
             try
             {
                 (ControllerNodeId, DeviceNodeIds) = await InitializeAsync(cancellationToken);
+                _logger.Debug("Serial communication initialized.");
             }
             catch
             {
@@ -123,7 +126,7 @@ namespace ZWaveSerialApi
             return new MemoryGetIdResponse(result.HomeId, result.NodeId);
         }
 
-        public async Task<NodeInfo?> RequestNodeInfoAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
+        public async Task<NodeInfo> RequestNodeInfoAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
         {
             var requestNodeInfoTx = RequestNodeInfoTx.Create(destinationNodeId);
 
@@ -144,19 +147,28 @@ namespace ZWaveSerialApi
                                              functionRx => functionRx.Success,
                                              TryGetCallbackValue,
                                              cancellationToken);
-            return applicationSlaveUpdate!.State == UpdateState.NodeInfoReceived
-                       ? new NodeInfo(applicationSlaveUpdate.DeviceClass, applicationSlaveUpdate.CommandClasses)
-                       : null;
+            if (applicationSlaveUpdate!.State != UpdateState.NodeInfoReceived)
+            {
+                throw new TimeoutException("No RequestNodeInfo ack received within timeout period.");
+            }
+
+            return new NodeInfo(applicationSlaveUpdate.DeviceClass, applicationSlaveUpdate.CommandClasses);
         }
 
         public async Task SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken = default)
         {
-            // TODO: Only TransmitOption.Ack when sending WakeUp.NoMoreInformation (since node is known due to having sent wake up notification)
-            const TransmitOption TransmitOptions = TransmitOption.Ack | TransmitOption.AutoRoute | TransmitOption.Explore;
+            await SendDataAsync(destinationNodeId, commandClassBytes, SendDataTx.DefaultTransmitOptions, cancellationToken);
+        }
 
+        public async Task SendDataAsync(
+            byte destinationNodeId,
+            byte[] commandClassBytes,
+            TransmitOption transmitOptions,
+            CancellationToken cancellationToken = default)
+        {
             var callbackFuncId = SendDataTx.GetNextCompletedFuncId();
 
-            var sendDataTx = SendDataTx.Create(destinationNodeId, commandClassBytes, TransmitOptions, callbackFuncId);
+            var sendDataTx = SendDataTx.Create(destinationNodeId, commandClassBytes, transmitOptions, callbackFuncId);
 
             bool TryGetCallbackValue(Frame frame, out TransmitComplete callbackValue)
             {
@@ -347,8 +359,8 @@ namespace ZWaveSerialApi
                 return;
             }
 
-            _commandClasses[applicationCommand.CommandClassType]
-                .ProcessCommandClassBytes(applicationCommand.SourceNodeId, applicationCommand.CommandClassBytes);
+            var commandClass = _commandClasses[applicationCommand.CommandClassType];
+            commandClass.ProcessCommandClassBytes(applicationCommand.SourceNodeId, applicationCommand.CommandClassBytes);
         }
 
         private void ProcessFrame(Frame frame)

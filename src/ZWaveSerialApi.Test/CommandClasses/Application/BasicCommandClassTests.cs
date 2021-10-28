@@ -59,7 +59,10 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
         public void Setup()
         {
             var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+
             var clientMock = new Mock<IZWaveSerialClient>();
+
             _basicCommandClass = new BasicCommandClass(loggerMock.Object, clientMock.Object);
         }
     }

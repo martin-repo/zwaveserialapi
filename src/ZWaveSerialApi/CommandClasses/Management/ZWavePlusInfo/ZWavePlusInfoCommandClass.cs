@@ -21,7 +21,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
         public ZWavePlusInfoCommandClass(ILogger logger, IZWaveSerialClient client)
             : base(client)
         {
-            _logger = logger.ForContext("ClassName", GetType().Name);
+            _logger = logger.ForContext<ZWavePlusInfoCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task<ZWavePlusInfoReport> GetAsync(byte destinationNodeId, CancellationToken cancellationToken)

@@ -45,7 +45,6 @@ namespace ZWaveSerialApi.Utilities
         /// </summary>
         public static int Bit6Mask = GetBitMask(7);
 
-        // TODO: unit test
         public static bool IsSet(byte @byte, int index)
         {
             if (index is < 0 or > 7)

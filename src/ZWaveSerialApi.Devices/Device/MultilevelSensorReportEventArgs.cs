@@ -4,7 +4,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Brands
+namespace ZWaveSerialApi.Devices.Device
 {
     using System;
 
