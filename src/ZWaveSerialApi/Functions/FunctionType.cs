@@ -8,6 +8,7 @@ namespace ZWaveSerialApi.Functions
 {
     internal enum FunctionType
     {
+        AddNodeToNetwork = 0x4A,
         ApplicationCommandHandlerBridge = 0xA8,
         ApplicationUpdate = 0x49,
         GetNodeProtocolInfo = 0x41,

@@ -1,34 +1,33 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="ApplicationSlaveUpdateRx.cs" company="Martin Karlsson">
+// <copyright file="AddNodeToNetworkRx.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Functions.ZWave.RequestNodeInfo
+namespace ZWaveSerialApi.Functions.ZWave.AddNodeToNetwork
 {
     using System;
 
-    internal class ApplicationSlaveUpdateRx : FunctionRx
+    internal class AddNodeToNetworkRx : FunctionRx
     {
-        public ApplicationSlaveUpdateRx(byte[] returnValueBytes)
-            : base(FunctionType.ApplicationUpdate, returnValueBytes)
+        public AddNodeToNetworkRx(byte[] returnValueBytes)
+            : base(FunctionType.AddNodeToNetwork, returnValueBytes)
         {
-            State = (UpdateState)returnValueBytes[1];
-            if (State != UpdateState.NodeInfoReceived)
+            CompletedFuncId = returnValueBytes[1];
+            Status = (AddNodeStatus)returnValueBytes[2];
+            SourceNodeId = returnValueBytes[3];
+
+            var length = returnValueBytes[4];
+            if (length == 0)
             {
                 DeviceClass = new DeviceClass(0, 0, 0);
                 CommandClasses = Array.Empty<byte>();
                 return;
             }
 
-            SourceNodeId = returnValueBytes[2];
-
-            var length = returnValueBytes[3];
-
-            // BASIC_TYPE_* @ ZW_classcmd.h
-            var basic = returnValueBytes[4];
-            var generic = returnValueBytes[5];
-            var specific = returnValueBytes[6];
+            var basic = returnValueBytes[5];
+            var generic = returnValueBytes[6];
+            var specific = returnValueBytes[7];
             DeviceClass = new DeviceClass(basic, generic, specific);
 
             CommandClasses = returnValueBytes[7..(7 + length - 3)];
@@ -36,10 +35,12 @@ namespace ZWaveSerialApi.Functions.ZWave.RequestNodeInfo
 
         public byte[] CommandClasses { get; }
 
+        public byte CompletedFuncId { get; }
+
         public DeviceClass DeviceClass { get; }
 
         public byte SourceNodeId { get; }
 
-        public UpdateState State { get; }
+        public AddNodeStatus Status { get; }
     }
 }

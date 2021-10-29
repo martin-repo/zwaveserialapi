@@ -4,7 +4,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Functions.ZWave.RequestNodeInfo
+namespace ZWaveSerialApi.Functions.ZWave
 {
     public record DeviceClass(byte Basic, byte Generic, byte Specific);
 }

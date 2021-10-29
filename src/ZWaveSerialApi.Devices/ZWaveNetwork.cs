@@ -53,6 +53,40 @@ namespace ZWaveSerialApi.Devices
 
         public event EventHandler<DeviceEventArgs>? DeviceWakeUp;
 
+        public async Task<IDevice?> AddNode(TimeSpan? wakeUpInterval = null, CancellationToken cancellationToken = default)
+        {
+            var listeningNodesCount = (byte)_devices.Count(device => device.IsListening);
+
+            var addedNode = await _client.AddNodeToNetworkAsync(listeningNodesCount, cancellationToken);
+
+            var (added, deviceState) = await AddDeviceStateIfMissingAsync(addedNode.NodeId, cancellationToken);
+            if (!added || deviceState == null)
+            {
+                return null;
+            }
+
+            // BASIC_TYPE_* @ ZW_classcmd.h
+            const byte BasicTypeRoutingSlave = 0x04;
+
+            if (deviceState.DeviceClass.Basic == BasicTypeRoutingSlave)
+            {
+                // DeleteSucReturnRoute 01 05 00 55 15 08 B2
+                // AssignSucReturnRoute 01 06 00 51 15 09 09 BD
+                // Association CC 01 0B 00 13 15 04 85 01 01 01 25 0B 5C
+            }
+
+            if (deviceState.CommandClasses.Contains((byte)CommandClassType.WakeUp) && wakeUpInterval.HasValue)
+            {
+                var wakeUp = _client.GetCommandClass<WakeUpCommandClass>();
+                var capabilities = await wakeUp.IntervalCapabilitiesGetAsync(addedNode.NodeId, cancellationToken);
+
+                // TODO: Adjust wakeUpInterval to meet capabilities.IntervalStep requirements.
+                await wakeUp.IntervalSetAsync(addedNode.NodeId, wakeUpInterval.Value, cancellationToken);
+            }
+
+            return CreateDevice(deviceState);
+        }
+
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
             await _client.ConnectAsync(cancellationToken);
@@ -167,7 +201,7 @@ namespace ZWaveSerialApi.Devices
             return (true, deviceState);
         }
 
-        private void CreateDevice(DeviceState deviceState)
+        private IDevice CreateDevice(DeviceState deviceState)
         {
             var device = _customDeviceFactory.CanCreate(deviceState.DeviceType)
                              ? _customDeviceFactory.Create(deviceState)
@@ -186,6 +220,8 @@ namespace ZWaveSerialApi.Devices
             {
                 _logger.Debug("Device {DeviceNodeId} - {DeviceName} added.", ByteToHexString(device.NodeId), device.Name);
             }
+
+            return device;
         }
 
         private async Task InitializeAsync(CancellationToken cancellationToken)
@@ -200,7 +236,7 @@ namespace ZWaveSerialApi.Devices
             _devices.Clear();
             foreach (var deviceState in _nodeIdDeviceStates.Values)
             {
-                CreateDevice(deviceState);
+                _ = CreateDevice(deviceState);
             }
         }
 
@@ -211,7 +247,7 @@ namespace ZWaveSerialApi.Devices
                 var (added, deviceState) = await AddDeviceStateIfMissingAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token);
                 if (added)
                 {
-                    CreateDevice(deviceState!);
+                    _ = CreateDevice(deviceState!);
                 }
             }
 
@@ -226,6 +262,9 @@ namespace ZWaveSerialApi.Devices
             {
                 DeviceWakeUp?.Invoke(this, new DeviceEventArgs(device));
             }
+
+            // TODO: Subtract time since event was received.
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
 
             using (var cancellationTokenSource = new CancellationTokenSource(_requestFromEventTimeout))
             {
@@ -285,10 +324,12 @@ namespace ZWaveSerialApi.Devices
 
                 var deviceState = new DeviceState
                                   {
+                                      DeviceClass = nodeInfo.DeviceClass,
                                       DeviceType = deviceType,
                                       IsAlwaysOn = isAlwaysOn,
                                       IsListening = isListening,
-                                      NodeId = deviceNodeId
+                                      NodeId = deviceNodeId,
+                                      CommandClasses = nodeInfo.CommandClasses
                                   };
                 return (true, deviceState);
             }

@@ -56,11 +56,13 @@ namespace ZWaveSerialApi.Functions.SerialApi
             var nodeBits = new BitArray(nodeBytes);
             for (var nodeIndex = 0; nodeIndex < nodeBits.Length; nodeIndex++)
             {
-                if (nodeBits[nodeIndex])
+                if (!nodeBits[nodeIndex])
                 {
-                    var nodeId = (byte)(nodeIndex + 1);
-                    deviceNodeIds.Add(nodeId);
+                    continue;
                 }
+
+                var nodeId = (byte)(nodeIndex + 1);
+                deviceNodeIds.Add(nodeId);
             }
 
             return deviceNodeIds;

@@ -101,6 +101,7 @@ namespace ZWaveSerialApi.Protocol
 
                 _logger.Information("Frame transmission failed after {Attempts} attempts.", MaxAttempts);
 
+                // TODO: Add argument specifying if this is allowed, eg. not applicable during add node
                 // 6.3 Retransmission @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
                 _logger.Debug("Reconnecting serial port.");
                 await DisconnectAsync(cancellationToken);

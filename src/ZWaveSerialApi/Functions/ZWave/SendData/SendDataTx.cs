@@ -10,15 +10,13 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
     {
         public const TransmitOption DefaultTransmitOptions = TransmitOption.Ack | TransmitOption.AutoRoute | TransmitOption.Explore;
 
-        private static byte nextCompletedFuncId = 1;
+        private readonly byte _callbackFuncId;
 
-        private SendDataTx(byte[] functionArgsBytes, byte completedFuncId)
+        private SendDataTx(byte[] functionArgsBytes, byte callbackFuncId)
             : base(functionArgsBytes)
         {
-            CompletedFuncId = completedFuncId;
+            _callbackFuncId = callbackFuncId;
         }
-
-        public byte CompletedFuncId { get; }
 
         public override bool HasReturnValue => true;
 
@@ -26,7 +24,7 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
             byte destinationNodeId,
             byte[] commandClassBytes,
             TransmitOption transmitOptions,
-            byte completedFuncId)
+            byte callbackFuncId)
         {
             var functionArgsBytes = new byte[commandClassBytes.Length + 5];
 
@@ -36,20 +34,9 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
             commandClassBytes.CopyTo(functionArgsBytes, 3);
 
             functionArgsBytes[^2] = (byte)transmitOptions;
-            functionArgsBytes[^1] = completedFuncId;
+            functionArgsBytes[^1] = callbackFuncId;
 
-            return new SendDataTx(functionArgsBytes, completedFuncId);
-        }
-
-        public static byte GetNextCompletedFuncId()
-        {
-            var completedFuncId = nextCompletedFuncId++;
-            if (nextCompletedFuncId == 0)
-            {
-                nextCompletedFuncId = 1;
-            }
-
-            return completedFuncId;
+            return new SendDataTx(functionArgsBytes, callbackFuncId);
         }
 
         public override FunctionRx CreateReturnValue(byte[] returnValueBytes)
@@ -60,7 +47,7 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
         public override bool IsValidReturnValue(byte[] returnValueBytes)
         {
             var functionType = (FunctionType)returnValueBytes[0];
-            return functionType == FunctionType.SendData;
+            return functionType == FunctionType.SendData && returnValueBytes[1] == _callbackFuncId;
         }
     }
 }
