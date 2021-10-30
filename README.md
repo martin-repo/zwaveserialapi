@@ -56,12 +56,21 @@ await network.ConnectAsync();
 
 await network.SaveAsync("ZWaveNetwork.json");
 ```
+### Device parameters
+Read and write device configuration parameters.
+```cs
+var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+
+// Get current value
+var timeout = await multiSensor.Parameters.PassiveInfraredTimeout.GetAsync();
+Console.WriteLine($"PassiveInfraredTimeout: {timeout.TotalSeconds}");
+
+// Set new value
+await multiSensor.Parameters.PassiveInfraredTimeout.SetAsync(TimeSpan.FromSeconds(10));
+```
 ### Using device location
 When using multiple devices of the same type, it helps to assign a location to each device.
 ```cs
-using var network = new ZWaveNetwork("COM3");
-await network.ConnectAsync();
-
 // Set location
 var unknownMultiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 unknownMultiSensor.Location = "Kitchen";
@@ -72,9 +81,6 @@ var kitchenMultiSensor = network.GetDevice<AeotecMultiSensor6>("Kitchen");
 ### Converting unsolicited values
 Units for unsolicited values are defined in the configuration of each device. If there is a need to use alternative units they can be converted manually.
 ```cs
-using var network = new ZWaveNetwork("COM3");
-await network.ConnectAsync();
-
 static void OutputBothTemperatureUnits(MultilevelSensorReport temperature)
 {
     switch (temperature.Scale)
@@ -94,11 +100,9 @@ static void OutputBothTemperatureUnits(MultilevelSensorReport temperature)
 
 var aerq = network.GetDevices<AeotecAerqSensor>().First();
 aerq.TemperatureReport += (_, eventArgs) => OutputBothTemperatureUnits(eventArgs.Report);
-
-Console.ReadKey();
 ```
 ### Custom device types
-[Create an issue](https://github.com/martin-repo/zwaveserialapi/issues) for missing devices. Until they are part of the API, you can create a custom type. See [CustomMultiSensor6.cs](https://github.com/martin-repo/zwaveserialapi/blob/main/src/DeveloperTest/CustomMultiSensor6.cs) source code and below example for how it's used.
+[Create an issue](https://github.com/martin-repo/zwaveserialapi/issues) for missing devices. Until they are part of the API, you can create a custom type. See [CustomMultilevelSensor.cs](https://github.com/martin-repo/zwaveserialapi/blob/main/src/DeveloperTest/CustomMultilevelSensor.cs) source code and below example for how it's used.
 ```cs
 using var network = new ZWaveNetwork("COM3");
 
