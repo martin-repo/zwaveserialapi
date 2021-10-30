@@ -29,6 +29,7 @@ namespace ZWaveSerialApi.Test
 
             foreach (var commandClassType in Enum.GetValues<CommandClassType>())
             {
+                // When this fails, add corresponding creation to ZWaveSerialClient.CreateCommandClasses(...)
                 Assert.DoesNotThrow(() => _ = client.GetCommandClass(commandClassType));
             }
         }

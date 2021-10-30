@@ -90,8 +90,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 
             if (_reportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
             {
-                var get = new MultilevelSensorReport(sensorType, value, unit, label, scale);
-                callbackSource.TrySetResult(get);
+                var report = new MultilevelSensorReport(sensorType, value, unit, label, scale);
+                callbackSource.TrySetResult(report);
             }
 
             Report?.Invoke(

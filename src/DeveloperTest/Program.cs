@@ -15,8 +15,7 @@ namespace DeveloperTest
         {
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
-                var exception = eventArgs.ExceptionObject as Exception;
-                if (exception != null)
+                if (eventArgs.ExceptionObject is Exception exception)
                 {
                     Console.WriteLine(exception.ToString());
                 }

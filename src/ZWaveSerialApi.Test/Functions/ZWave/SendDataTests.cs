@@ -78,34 +78,15 @@ namespace ZWaveSerialApi.Test.Functions.ZWave
             Assert.That(returnValue.Success, Is.EqualTo(expectedSuccess));
         }
 
-        [TestCase(
-            1,
-            "AA-BB-CC",
-            TransmitOptions,
-            1,
-            "13-01",
-            true)]
-        [TestCase(
-            1,
-            "AA-BB-CC",
-            TransmitOptions,
-            1,
-            "13-00",
-            false)]
-        [TestCase(
-            1,
-            "AA-BB-CC",
-            TransmitOptions,
-            2,
-            "13-02",
-            true)]
+        [TestCase(1, "AA-BB-CC", TransmitOptions, 1, "13-01")]
+        [TestCase(1, "AA-BB-CC", TransmitOptions, 1, "13-00")]
+        [TestCase(1, "AA-BB-CC", TransmitOptions, 2, "13-02")]
         public void IsValidReturnValue(
             byte destinationNodeId,
             string commandClassBytesString,
             TransmitOption transmitOptions,
             byte callbackFuncId,
-            string returnValueBytesString,
-            bool expectedIsValidReturnValue)
+            string returnValueBytesString)
         {
             var commandClassBytes = commandClassBytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
             var returnValueBytes = returnValueBytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
@@ -113,7 +94,7 @@ namespace ZWaveSerialApi.Test.Functions.ZWave
             var functionTx = SendDataTx.Create(destinationNodeId, commandClassBytes, transmitOptions, callbackFuncId);
             var isValidReturnValue = functionTx.IsValidReturnValue(returnValueBytes);
 
-            Assert.That(isValidReturnValue, Is.EqualTo(expectedIsValidReturnValue));
+            Assert.That(isValidReturnValue, Is.True);
         }
     }
 }

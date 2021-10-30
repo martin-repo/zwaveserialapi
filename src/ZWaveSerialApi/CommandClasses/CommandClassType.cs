@@ -6,11 +6,13 @@
 
 namespace ZWaveSerialApi.CommandClasses
 {
+    // COMMAND_CLASS_* @ ZW_classcmd.h
     public enum CommandClassType
     {
         // Application
         Basic = 0x20,
         ColorSwitch = 0x33,
+        Configuration = 0x70,
         MultilevelSensor = 0x31,
         MultilevelSwitch = 0x26,
         Notification = 0x71,
@@ -23,7 +25,5 @@ namespace ZWaveSerialApi.CommandClasses
 
         // Transport encapsulation
         Crc16Encap = 0x56
-
-        // Network protocol
     }
 }

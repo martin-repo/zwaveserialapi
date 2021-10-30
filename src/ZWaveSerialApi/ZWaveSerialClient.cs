@@ -17,6 +17,7 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.CommandClasses;
     using ZWaveSerialApi.CommandClasses.Application.Basic;
     using ZWaveSerialApi.CommandClasses.Application.ColorSwitch;
+    using ZWaveSerialApi.CommandClasses.Application.Configuration;
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
@@ -28,7 +29,6 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.Functions;
     using ZWaveSerialApi.Functions.SerialApi;
     using ZWaveSerialApi.Functions.ZWave;
-    using ZWaveSerialApi.Functions.ZWave.AddNodeToNetwork;
     using ZWaveSerialApi.Functions.ZWave.RequestNodeInfo;
     using ZWaveSerialApi.Functions.ZWave.SendData;
     using ZWaveSerialApi.Functions.ZWave.TypeLibrary;
@@ -62,14 +62,6 @@ namespace ZWaveSerialApi
         public byte[] DeviceNodeIds { get; private set; }
 
         public bool IsConnected => _port.IsConnected;
-
-        public async Task<AddedNode> AddNodeToNetworkAsync(byte listeningNodeCount, CancellationToken cancellationToken = default)
-        {
-            var callbackFuncId = GetNextCallbackFuncId();
-
-            var addNodeSequence = new AddNodeSequence(_logger, listeningNodeCount, this, _port, callbackFuncId);
-            return await addNodeSequence.ExecuteAsync(cancellationToken);
-        }
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
@@ -183,9 +175,12 @@ namespace ZWaveSerialApi
 
             bool TryGetCallbackValue(Frame frame, out TransmitComplete callbackValue)
             {
-                if (frame.Type == FrameType.Request && frame.FunctionType == FunctionType.SendData && frame.SerialCommandBytes[1] == callbackFuncId)
+                SendDataCallbackRx? sendDataCallbackRx;
+                if (frame.Type == FrameType.Request
+                    && (sendDataCallbackRx = SendDataCallbackRx.TryCreate(frame.SerialCommandBytes)) != null
+                    && sendDataCallbackRx.CallbackFuncId == callbackFuncId)
                 {
-                    callbackValue = (TransmitComplete)frame.SerialCommandBytes[2];
+                    callbackValue = sendDataCallbackRx.Status;
                     return true;
                 }
 
@@ -251,6 +246,7 @@ namespace ZWaveSerialApi
                                      // Application
                                      { CommandClassType.Basic, new BasicCommandClass(_logger, this) },
                                      { CommandClassType.ColorSwitch, new ColorSwitchCommandClass(_logger, this) },
+                                     { CommandClassType.Configuration, new ConfigurationCommandClass(_logger, this) },
                                      { CommandClassType.MultilevelSensor, new MultilevelSensorCommandClass(_logger, this) },
                                      { CommandClassType.MultilevelSwitch, new MultilevelSwitchCommandClass(_logger, this) },
                                      { CommandClassType.Notification, new NotificationCommandClass(_logger, this) },
@@ -354,7 +350,6 @@ namespace ZWaveSerialApi
                     throw new TransmitException("Transmit queue full.");
                 }
 
-                // TODO: Add timeout to argument
                 if (await Task.WhenAny(callbackSource.Task, Task.Delay(CallbackTimeout, cancellationToken)) != callbackSource.Task)
                 {
                     throw new TimeoutException("Timeout waiting for callback.");

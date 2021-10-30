@@ -28,14 +28,21 @@ namespace ZWaveSerialApi.CommandClasses
         {
             var callbackSource = callbackSources.GetOrAdd(destinationNodeId, _ => new TaskCompletionSource<T>());
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
-            if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)) == callbackSource.Task)
+            try
             {
-                return callbackSource.Task.Result;
-            }
+                await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
 
-            callbackSources.TryRemove(destinationNodeId, out _);
-            throw new TimeoutException("Timeout waiting for response.");
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)) == callbackSource.Task)
+                {
+                    return callbackSource.Task.Result;
+                }
+
+                throw new TimeoutException("Timeout waiting for response.");
+            }
+            finally
+            { 
+                callbackSources.TryRemove(destinationNodeId, out _);
+            }
         }
 
         internal abstract void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes);

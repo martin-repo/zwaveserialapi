@@ -10,8 +10,10 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
     using System.Threading;
     using System.Threading.Tasks;
 
+    using ZWaveSerialApi.CommandClasses.Application.Configuration;
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
+    using ZWaveSerialApi.Devices.Brands.Aeotec.Configuration;
     using ZWaveSerialApi.Devices.Device;
     using ZWaveSerialApi.Devices.Utilities;
 
@@ -24,6 +26,8 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
         internal AeotecMultiSensor6(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
         {
+            Parameters = new AeotecMultiSensor6Parameters(NodeId, Client.GetCommandClass<ConfigurationCommandClass>());
+
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
 
             var notification = Client.GetCommandClass<NotificationCommandClass>();
@@ -33,6 +37,8 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
         public event EventHandler? HomeSecurityIdle;
 
         public event EventHandler? HomeSecurityMotionDetected;
+
+        public AeotecMultiSensor6Parameters Parameters { get; }
 
         public async Task<MultilevelSensorReport> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken = default)
         {

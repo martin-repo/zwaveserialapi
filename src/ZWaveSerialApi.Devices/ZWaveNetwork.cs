@@ -32,6 +32,7 @@ namespace ZWaveSerialApi.Devices
         private readonly ILogger _logger;
         private readonly Dictionary<byte, DeviceState> _nodeIdDeviceStates = new();
         private readonly TimeSpan _requestFromEventTimeout = TimeSpan.FromSeconds(5);
+        private readonly Dictionary<byte, DeviceType> _unsupportedDeviceTypes = new();
         private readonly WakeUpCommandClass _wakeUp;
 
         public ZWaveNetwork(ILogger logger, string portName)
@@ -52,40 +53,6 @@ namespace ZWaveSerialApi.Devices
         }
 
         public event EventHandler<DeviceEventArgs>? DeviceWakeUp;
-
-        public async Task<IDevice?> AddNode(TimeSpan? wakeUpInterval = null, CancellationToken cancellationToken = default)
-        {
-            var listeningNodesCount = (byte)_devices.Count(device => device.IsListening);
-
-            var addedNode = await _client.AddNodeToNetworkAsync(listeningNodesCount, cancellationToken);
-
-            var (added, deviceState) = await AddDeviceStateIfMissingAsync(addedNode.NodeId, cancellationToken);
-            if (!added || deviceState == null)
-            {
-                return null;
-            }
-
-            // BASIC_TYPE_* @ ZW_classcmd.h
-            const byte BasicTypeRoutingSlave = 0x04;
-
-            if (deviceState.DeviceClass.Basic == BasicTypeRoutingSlave)
-            {
-                // DeleteSucReturnRoute 01 05 00 55 15 08 B2
-                // AssignSucReturnRoute 01 06 00 51 15 09 09 BD
-                // Association CC 01 0B 00 13 15 04 85 01 01 01 25 0B 5C
-            }
-
-            if (deviceState.CommandClasses.Contains((byte)CommandClassType.WakeUp) && wakeUpInterval.HasValue)
-            {
-                var wakeUp = _client.GetCommandClass<WakeUpCommandClass>();
-                var capabilities = await wakeUp.IntervalCapabilitiesGetAsync(addedNode.NodeId, cancellationToken);
-
-                // TODO: Adjust wakeUpInterval to meet capabilities.IntervalStep requirements.
-                await wakeUp.IntervalSetAsync(addedNode.NodeId, wakeUpInterval.Value, cancellationToken);
-            }
-
-            return CreateDevice(deviceState);
-        }
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
@@ -125,6 +92,19 @@ namespace ZWaveSerialApi.Devices
             where T : IDevice
         {
             return _devices.OfType<T>();
+        }
+
+        public IEnumerable<IDevice> GetDevices()
+        {
+            return _devices.ToList();
+        }
+
+        public IEnumerable<DeviceType> GetUnsupportedDeviceTypes()
+        {
+            return _unsupportedDeviceTypes.Values.Distinct()
+                                          .OrderBy(deviceType => deviceType.ManufacturerId)
+                                          .ThenBy(deviceType => deviceType.ProductTypeId)
+                                          .ThenBy(deviceType => deviceType.ProductId);
         }
 
         public async Task LoadAsync(string settingsFilePath, CancellationToken cancellationToken = default)
@@ -180,7 +160,7 @@ namespace ZWaveSerialApi.Devices
             byte deviceNodeId,
             CancellationToken cancellationToken)
         {
-            if (_nodeIdDeviceStates.ContainsKey(deviceNodeId))
+            if (_nodeIdDeviceStates.ContainsKey(deviceNodeId) || _unsupportedDeviceTypes.ContainsKey(deviceNodeId))
             {
                 return (false, null);
             }
@@ -194,6 +174,7 @@ namespace ZWaveSerialApi.Devices
             if (!_customDeviceFactory.CanCreate(deviceState.DeviceType) && !_deviceFactory.CanCreate(deviceState.DeviceType))
             {
                 _logger.Warning("Node {NodeId} device type ({DeviceType}) is not supported.", ByteToHexString(deviceNodeId), deviceState.DeviceType);
+                _unsupportedDeviceTypes.Add(deviceState.NodeId, deviceState.DeviceType);
                 return (false, null);
             }
 
@@ -263,7 +244,6 @@ namespace ZWaveSerialApi.Devices
                 DeviceWakeUp?.Invoke(this, new DeviceEventArgs(device));
             }
 
-            // TODO: Subtract time since event was received.
             await Task.Delay(TimeSpan.FromMilliseconds(100));
 
             using (var cancellationTokenSource = new CancellationTokenSource(_requestFromEventTimeout))

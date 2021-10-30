@@ -13,14 +13,14 @@ namespace ZWaveSerialApi.Devices.Utilities
 
     internal class AttributeHelper
     {
-        public static string GetDeviceName(Type type)
+        public static string? GetDeviceName(Type type)
         {
-            return type.GetCustomAttribute<DeviceNameAttribute>()!.Name;
+            return type.GetCustomAttribute<DeviceNameAttribute>()?.Name;
         }
 
-        public static DeviceType GetDeviceType(Type type)
+        public static DeviceType? GetDeviceType(Type type)
         {
-            return type.GetCustomAttribute<DeviceTypeAttribute>()!.DeviceType;
+            return type.GetCustomAttribute<DeviceTypeAttribute>()?.DeviceType;
         }
     }
 }

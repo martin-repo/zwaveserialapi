@@ -47,7 +47,7 @@ namespace ZWaveSerialApi.Functions.ZWave.SendData
         public override bool IsValidReturnValue(byte[] returnValueBytes)
         {
             var functionType = (FunctionType)returnValueBytes[0];
-            return functionType == FunctionType.SendData && returnValueBytes[1] == _callbackFuncId;
+            return functionType == FunctionType.SendData;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace ZWaveSerialApi.Devices.Device
         {
             Client = client;
             _deviceState = deviceState;
-            Name = AttributeHelper.GetDeviceName(GetType());
+            Name = AttributeHelper.GetDeviceName(GetType()) ?? string.Empty;
         }
 
         public bool IsAlwaysOn => _deviceState.IsAlwaysOn;

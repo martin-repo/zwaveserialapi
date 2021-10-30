@@ -13,12 +13,12 @@ namespace DeveloperTest
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.Devices.Device;
 
-    public class CustomMultiSensor6 : IDevice
+    public class CustomMultilevelSensor : IDevice
     {
         private readonly DeviceState _deviceState;
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
-        internal CustomMultiSensor6(IZWaveSerialClient client, DeviceState deviceState)
+        internal CustomMultilevelSensor(IZWaveSerialClient client, DeviceState deviceState)
         {
             _deviceState = deviceState;
 
@@ -31,7 +31,7 @@ namespace DeveloperTest
 
         public string Location { get; set; } = string.Empty;
 
-        public string Name => "Custom Motion Sensor 6";
+        public string Name => "Custom MultilevelSensor";
 
         public byte NodeId => _deviceState.NodeId;
 

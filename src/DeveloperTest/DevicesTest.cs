@@ -51,9 +51,19 @@ namespace DeveloperTest
             await network.ConnectAsync();
 
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+            
             var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
-
             logger.Information($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");
+
+            multiSensor.HomeSecurityMotionDetected += (_, _) =>
+            {
+                logger.Information("Motion detection started");
+            };
+
+            multiSensor.HomeSecurityIdle += (_, _) =>
+            {
+                logger.Information("Motion detection idle");
+            };
 
             //var aerq = network.GetDevices<AeotecAerqSensor>().First();
             //aerq.TemperatureReport += (_, eventArgs) => logger.Information("AërQ temperature = " + eventArgs.Report.Value + eventArgs.Report.Unit);

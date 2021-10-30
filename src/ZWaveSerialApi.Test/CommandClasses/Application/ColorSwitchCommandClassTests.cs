@@ -40,7 +40,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             50,
             false,
             "33-05-03-02-96-03-64-04-32-00")]
-        public void IntervalCapabilitiesGetAsync_ShouldSendData(
+        public void SetAsync_ShouldSendData(
             byte destinationNodeId,
             byte red,
             byte green,

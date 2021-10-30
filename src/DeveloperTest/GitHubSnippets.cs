@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="GitHubExamples.cs" company="Martin Karlsson">
+// <copyright file="GitHubSnippets.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
@@ -13,21 +13,26 @@ namespace DeveloperTest
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.Devices;
     using ZWaveSerialApi.Devices.Brands.Aeotec;
-    using ZWaveSerialApi.Devices.Device;
     using ZWaveSerialApi.Utilities;
 
-    internal class GitHubExamples
+    internal class GitHubSnippets
     {
         public async Task CustomDeviceType()
         {
             using var network = new ZWaveNetwork("COM3");
 
-            var customDeviceType = new DeviceType(0x0086, 0x0002, 0x0064);
-            network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultiSensor6(client, deviceState));
+            // Get the device type of the unsupported device, either
+            // 1) Input the data manually, eg.:
+            //    var customDeviceType = new DeviceType(0x0086, 0x0002, 0x0064);
+            // *OR*
+            // 2) Get the data from a device already on the network, eg.:
+            var customDeviceType = network.GetUnsupportedDeviceTypes().First();
+
+            network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultilevelSensor(client, deviceState));
 
             await network.ConnectAsync();
 
-            var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
+            var multiSensor = network.GetDevices<CustomMultilevelSensor>().First();
             var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
         }
 
@@ -80,6 +85,21 @@ namespace DeveloperTest
             // ... program logic ...
 
             await network.SaveAsync("ZWaveNetwork.json");
+        }
+
+        public async Task UpdateParameter()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+
+            // Get current value
+            var timeout = await multiSensor.Parameters.PassiveInfraredTimeout.GetAsync();
+            Console.WriteLine($"PassiveInfraredTimeout: {timeout.TotalSeconds}");
+
+            // Set new value
+            await multiSensor.Parameters.PassiveInfraredTimeout.SetAsync(TimeSpan.FromSeconds(10));
         }
 
         public async Task ValueConvert()
