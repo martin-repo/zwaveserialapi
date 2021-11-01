@@ -33,7 +33,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             int expectedProductTypeId,
             int expectedProductId)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
@@ -49,7 +49,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [TestCase(1, "72-04")]
         public void GetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytesString = string.Empty;
             _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))

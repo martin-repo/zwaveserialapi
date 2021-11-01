@@ -106,7 +106,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             string expectedLabel,
             Enum scale)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
@@ -135,7 +135,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
             Enum scale,
             string expectedBytesString)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytesString = string.Empty;
             _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))

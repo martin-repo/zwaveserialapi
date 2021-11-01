@@ -41,7 +41,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
             int expectedDefaultIntervalSeconds,
             int expectedIntervalStepSeconds)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
@@ -58,7 +58,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [TestCase(1, "84-09")]
         public void IntervalCapabilitiesGetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytesString = string.Empty;
             _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
@@ -81,7 +81,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [TestCase(1, "84-06-00-0E-10-01", 3600)]
         public void IntervalGetAsync_ShouldProcessData(byte destinationNodeId, string bytesString, int expectedIntervalSeconds)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
 
@@ -95,7 +95,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.Management
         [TestCase(1, "84-05")]
         public void IntervalGetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
         {
-            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(1));
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
 
             var bytesString = string.Empty;
             _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
