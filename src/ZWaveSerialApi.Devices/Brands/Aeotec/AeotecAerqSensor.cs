@@ -16,7 +16,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec aërQ Temperature & Humidity Sensor")]
     [DeviceType(0x0371, 0x0002, 0x0009)]
-    public class AeotecAerqSensor : Device
+    public class AeotecAerqSensor : Device, ITemperatureSensor, IHumiditySensor, IDewPointSensor
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 

@@ -14,7 +14,7 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
 
     [DeviceName("Fibaro Motion Sensor")]
     [DeviceType(0x010F, 0x0801, 0x1002)]
-    public class FibaroMotionSensor : Device
+    public class FibaroMotionSensor : Device, IMotionSensor
     {
         internal FibaroMotionSensor(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
@@ -23,9 +23,9 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
             notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;
         }
 
-        public event EventHandler? HomeSecurityMotionDetected;
+        public event EventHandler? MotionDetected;
 
-        public event EventHandler? HomeSecurityMotionIdle;
+        public event EventHandler? MotionIdle;
 
         private void OnNotificationHomeSecurityStateChanged(object? sender, HomeSecurityEventArgs eventArgs)
         {
@@ -41,13 +41,13 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
                     switch (eventGoingIdle)
                     {
                         case HomeSecurityState.MotionDetection:
-                            HomeSecurityMotionIdle?.Invoke(sender, EventArgs.Empty);
+                            MotionIdle?.Invoke(sender, EventArgs.Empty);
                             break;
                     }
 
                     break;
                 case HomeSecurityState.MotionDetection:
-                    HomeSecurityMotionDetected?.Invoke(sender, EventArgs.Empty);
+                    MotionDetected?.Invoke(sender, EventArgs.Empty);
                     break;
             }
         }

@@ -48,6 +48,8 @@ namespace ZWaveSerialApi.Protocol
 
         public bool IsConnected => _port.IsOpen;
 
+        public bool ReconnectOnFailure { get; set; } = true;
+
         public async Task ConnectAsync(CancellationToken cancellationToken)
         {
             if (_port.IsOpen)
@@ -97,6 +99,11 @@ namespace ZWaveSerialApi.Protocol
                 if (await TryTransmitFrameAsync(frame, cancellationToken))
                 {
                     return;
+                }
+
+                if (!ReconnectOnFailure)
+                {
+                    throw new TransmitException($"Frame transmission failed after {MaxAttempts} attempts.");
                 }
 
                 _logger.Information("Frame transmission failed after {Attempts} attempts.", MaxAttempts);

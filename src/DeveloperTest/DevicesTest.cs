@@ -55,12 +55,12 @@ namespace DeveloperTest
             var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
             logger.Information($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");
 
-            multiSensor.HomeSecurityMotionDetected += (_, _) =>
+            multiSensor.MotionDetected += (_, _) =>
             {
                 logger.Information("Motion detection started");
             };
 
-            multiSensor.HomeSecurityIdle += (_, _) =>
+            multiSensor.MotionIdle += (_, _) =>
             {
                 logger.Information("Motion detection idle");
             };

@@ -44,11 +44,11 @@ namespace DeveloperTest
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
             // Register for unsolicited home security notifications
-            multiSensor.HomeSecurityMotionDetected += (_, _) =>
+            multiSensor.MotionDetected += (_, _) =>
             {
                 /* Motion detection started */
             };
-            multiSensor.HomeSecurityIdle += (_, _) =>
+            multiSensor.MotionIdle += (_, _) =>
             {
                 /* Motion detection stopped */
             };

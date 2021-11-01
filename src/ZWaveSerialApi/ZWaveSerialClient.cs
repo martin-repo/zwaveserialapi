@@ -63,6 +63,8 @@ namespace ZWaveSerialApi
 
         public bool IsConnected => _port.IsConnected;
 
+        public bool ReconnectOnFailure => _port.ReconnectOnFailure;
+
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
             await _port.ConnectAsync(cancellationToken);

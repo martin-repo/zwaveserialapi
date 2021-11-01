@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>1.0.0-rc1</Version>
+    <Version>1.0.0-rc2</Version>
     <Authors>martin-repo</Authors>
     <Description>Provides classes for controlling a Z-Wave network via a USB-stick.
 
@@ -12,15 +12,10 @@ Install the package ZWaveSerialApi.Devices in order to get device wrapper classe
     <PackageProjectUrl>https://martin-repo.github.io/zwaveserialapi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/martin-repo/zwaveserialapi</RepositoryUrl>
     <PackageTags>csharp dotnet zwave z-wave zstick z-stick serial api aeotec</PackageTags>
-    <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="System.IO.Ports" Version="5.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

@@ -19,7 +19,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec MultiSensor 6")]
     [DeviceType(0x0086, 0x0002, 0x0064)]
-    public class AeotecMultiSensor6 : Device
+    public class AeotecMultiSensor6 : Device, IMotionSensor, ITemperatureSensor, IHumiditySensor
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
@@ -29,14 +29,19 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
             Parameters = new AeotecMultiSensor6Parameters(NodeId, Client.GetCommandClass<ConfigurationCommandClass>());
 
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
+            _multilevelSensor.Report += OnMultiLevelSensorReport;
 
             var notification = Client.GetCommandClass<NotificationCommandClass>();
             notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;
         }
 
-        public event EventHandler? HomeSecurityIdle;
+        public event EventHandler<MultilevelSensorReportEventArgs>? HumidityReport;
 
-        public event EventHandler? HomeSecurityMotionDetected;
+        public event EventHandler? MotionDetected;
+
+        public event EventHandler? MotionIdle;
+
+        public event EventHandler<MultilevelSensorReportEventArgs>? TemperatureReport;
 
         public AeotecMultiSensor6Parameters Parameters { get; }
 
@@ -50,6 +55,21 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.AirTemperature, scale, cancellationToken);
         }
 
+        private void OnMultiLevelSensorReport(object? sender, MultilevelSensorEventArgs eventArgs)
+        {
+            var report = new MultilevelSensorReport(eventArgs.SensorType, eventArgs.Value, eventArgs.Unit, eventArgs.Label, eventArgs.Scale);
+
+            switch (eventArgs.SensorType)
+            {
+                case MultilevelSensorType.AirTemperature:
+                    TemperatureReport?.Invoke(this, new MultilevelSensorReportEventArgs(report));
+                    break;
+                case MultilevelSensorType.Humidity:
+                    HumidityReport?.Invoke(this, new MultilevelSensorReportEventArgs(report));
+                    break;
+            }
+        }
+
         private void OnNotificationHomeSecurityStateChanged(object? sender, HomeSecurityEventArgs eventArgs)
         {
             if (eventArgs.SourceNodeId != NodeId)
@@ -60,10 +80,10 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
             switch (eventArgs.State)
             {
                 case HomeSecurityState.Idle:
-                    HomeSecurityIdle?.Invoke(sender, EventArgs.Empty);
+                    MotionIdle?.Invoke(sender, EventArgs.Empty);
                     break;
                 case HomeSecurityState.MotionDetection:
-                    HomeSecurityMotionDetected?.Invoke(sender, EventArgs.Empty);
+                    MotionDetected?.Invoke(sender, EventArgs.Empty);
                     break;
             }
         }

@@ -19,7 +19,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec LED Bulb 6 MultiColor")]
     [DeviceType(0x0371, 0x0003, 0x0002)]
-    public class AeotecLedBulb6MultiColor : Device
+    public class AeotecLedBulb6MultiColor : Device, IMultiColorBulb
     {
         internal AeotecLedBulb6MultiColor(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
