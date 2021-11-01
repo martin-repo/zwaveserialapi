@@ -34,7 +34,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
             commandClassBytes[1] = (byte)ConfigurationCommand.Get;
             commandClassBytes[2] = parameterNumber;
 
-            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SetAsync(
@@ -52,7 +52,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
 
             value.CopyTo(commandClassBytes, 4);
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

@@ -44,7 +44,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 
             commandClassBytes.Add((byte)duration);
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

@@ -17,7 +17,7 @@ await network.ConnectAsync();
 
 var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
-// Register for unsolicited home security notifications
+// Register for unsolicited motion notifications
 multiSensor.MotionDetected += (_, _) =>
 {
     /* Motion detection started */
@@ -106,11 +106,11 @@ using var network = new ZWaveNetwork("COM3");
 // 2) Get the data from a device already on the network, eg.:
 var customDeviceType = network.GetUnsupportedDeviceTypes().First();
 
-network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultiSensor6(client, deviceState));
+network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultilevelSensor(client, deviceState));
 
 await network.ConnectAsync();
 
-var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
+var multiSensor = network.GetDevices<CustomMultilevelSensor>().First();
 var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
 ```
 ## Features not supported

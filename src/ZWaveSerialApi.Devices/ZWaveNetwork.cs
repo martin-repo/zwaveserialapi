@@ -56,8 +56,8 @@ namespace ZWaveSerialApi.Devices
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
-            await _client.ConnectAsync(cancellationToken);
-            await InitializeAsync(cancellationToken);
+            await _client.ConnectAsync(cancellationToken).ConfigureAwait(false);
+            await InitializeAsync(cancellationToken).ConfigureAwait(false);
 
             _logger.Debug("Network initialized.");
 
@@ -68,7 +68,7 @@ namespace ZWaveSerialApi.Devices
         {
             _wakeUp.Notification -= OnWakeUpNotification;
 
-            await _client.DisconnectAsync(cancellationToken);
+            await _client.DisconnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()
@@ -118,7 +118,8 @@ namespace ZWaveSerialApi.Devices
 
             await using var fileStream = File.OpenRead(settingsFilePath);
 
-            var settings = await JsonSerializer.DeserializeAsync<NetworkSettings>(fileStream, new JsonSerializerOptions(), cancellationToken);
+            var settings = await JsonSerializer.DeserializeAsync<NetworkSettings>(fileStream, new JsonSerializerOptions(), cancellationToken)
+                                               .ConfigureAwait(false);
             if (settings == null)
             {
                 throw new InvalidDataException("File did not contain valid settings json.");
@@ -148,7 +149,7 @@ namespace ZWaveSerialApi.Devices
 
             await using FileStream fileStream = File.Create(settingsFilePath);
 
-            await JsonSerializer.SerializeAsync(fileStream, settings, options, cancellationToken);
+            await JsonSerializer.SerializeAsync(fileStream, settings, options, cancellationToken).ConfigureAwait(false);
         }
 
         private static string ByteToHexString(byte @byte)
@@ -165,7 +166,7 @@ namespace ZWaveSerialApi.Devices
                 return (false, null);
             }
 
-            var (success, deviceState) = await TryGetDeviceStateAsync(deviceNodeId, cancellationToken);
+            var (success, deviceState) = await TryGetDeviceStateAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
             if (!success || deviceState == null)
             {
                 return (false, null);
@@ -211,7 +212,7 @@ namespace ZWaveSerialApi.Devices
 
             foreach (var deviceNodeId in _client.DeviceNodeIds)
             {
-                _ = await AddDeviceStateIfMissingAsync(deviceNodeId, cancellationToken);
+                _ = await AddDeviceStateIfMissingAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
             }
 
             _devices.Clear();
@@ -225,7 +226,8 @@ namespace ZWaveSerialApi.Devices
         {
             using (var cancellationTokenSource = new CancellationTokenSource(_addDeviceTimeout))
             {
-                var (added, deviceState) = await AddDeviceStateIfMissingAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token);
+                var (added, deviceState) =
+                    await AddDeviceStateIfMissingAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token).ConfigureAwait(false);
                 if (added)
                 {
                     _ = CreateDevice(deviceState!);
@@ -244,11 +246,11 @@ namespace ZWaveSerialApi.Devices
                 DeviceWakeUp?.Invoke(this, new DeviceEventArgs(device));
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
 
             using (var cancellationTokenSource = new CancellationTokenSource(_requestFromEventTimeout))
             {
-                await _wakeUp.NoMoreInformationAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token);
+                await _wakeUp.NoMoreInformationAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token).ConfigureAwait(false);
             }
         }
 
@@ -278,7 +280,7 @@ namespace ZWaveSerialApi.Devices
         {
             try
             {
-                var nodeInfo = await _client.RequestNodeInfoAsync(deviceNodeId, cancellationToken);
+                var nodeInfo = await _client.RequestNodeInfoAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
                 if (!nodeInfo.CommandClasses.Contains((byte)CommandClassType.ManufacturerSpecific))
                 {
                     _logger.Warning(
@@ -289,16 +291,18 @@ namespace ZWaveSerialApi.Devices
                 }
 
                 var manufacturerSpecificCommandClass = _client.GetCommandClass<ManufacturerSpecificCommandClass>();
-                var report = await manufacturerSpecificCommandClass.GetAsync(deviceNodeId, cancellationToken);
+                var report = await manufacturerSpecificCommandClass.GetAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
                 var deviceType = new DeviceType(report.ManufacturerId, report.ProductTypeId, report.ProductId);
 
-                var nodeProtocolInfo = await _client.GetNodeProtocolInfo(deviceNodeId, cancellationToken);
+                var nodeProtocolInfo = await _client.GetNodeProtocolInfo(deviceNodeId, cancellationToken).ConfigureAwait(false);
                 var isListening = nodeProtocolInfo.Listening;
 
                 var isAlwaysOn = false;
                 if (nodeInfo.CommandClasses.Contains((byte)CommandClassType.ZWavePlusInfo))
                 {
-                    var zwavePlusReport = await _client.GetCommandClass<ZWavePlusInfoCommandClass>().GetAsync(deviceNodeId, cancellationToken);
+                    var zwavePlusReport = await _client.GetCommandClass<ZWavePlusInfoCommandClass>()
+                                                       .GetAsync(deviceNodeId, cancellationToken)
+                                                       .ConfigureAwait(false);
                     isAlwaysOn = zwavePlusReport.RoleType == SlaveRoleType.AlwaysOn;
                 }
 

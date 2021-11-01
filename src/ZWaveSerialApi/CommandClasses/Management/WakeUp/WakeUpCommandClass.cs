@@ -38,7 +38,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.IntervalCapabilitiesGet;
 
-            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalCapabilitiesReportCallbackSources, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalCapabilitiesReportCallbackSources, cancellationToken)
+                       .ConfigureAwait(false);
         }
 
         public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
@@ -47,7 +48,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             commandClassBytes[0] = (byte)CommandClassType.WakeUp;
             commandClassBytes[1] = (byte)WakeUpCommand.IntervalGet;
 
-            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalReportCallbackSources, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalReportCallbackSources, cancellationToken)
+                       .ConfigureAwait(false);
         }
 
         public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken)
@@ -60,7 +62,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
             commandClassBytes[5] = Client.ControllerNodeId;
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken)
@@ -70,7 +72,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             commandClassBytes[1] = (byte)WakeUpCommand.NoMoreInformation;
 
             // Only use TransmitOption.Ack since node is known after having sent wake up notification.
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes, TransmitOption.Ack, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, TransmitOption.Ack, cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

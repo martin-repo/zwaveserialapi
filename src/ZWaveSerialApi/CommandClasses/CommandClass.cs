@@ -30,9 +30,10 @@ namespace ZWaveSerialApi.CommandClasses
 
             try
             {
-                await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+                await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
 
-                if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)) == callbackSource.Task)
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)).ConfigureAwait(false)
+                    == callbackSource.Task)
                 {
                     return callbackSource.Task.Result;
                 }
@@ -40,7 +41,7 @@ namespace ZWaveSerialApi.CommandClasses
                 throw new TimeoutException("Timeout waiting for response.");
             }
             finally
-            { 
+            {
                 callbackSources.TryRemove(destinationNodeId, out _);
             }
         }

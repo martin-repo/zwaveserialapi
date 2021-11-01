@@ -30,7 +30,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
             commandClassBytes[0] = (byte)CommandClassType.ZWavePlusInfo;
             commandClassBytes[1] = (byte)ZWavePlusInfoCommand.Get;
 
-            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

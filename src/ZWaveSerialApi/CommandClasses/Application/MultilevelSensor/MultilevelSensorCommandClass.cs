@@ -49,7 +49,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             commandClassBytes[2] = (byte)sensorType;
             commandClassBytes[3] = ConstructMetadataByte(0, scaleValue, 0);
 
-            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken);
+            return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

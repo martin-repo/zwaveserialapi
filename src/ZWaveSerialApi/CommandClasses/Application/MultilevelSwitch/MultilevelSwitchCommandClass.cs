@@ -39,7 +39,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
             commandClassBytes[2] = level;
             commandClassBytes[3] = (byte)duration;
 
-            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken);
+            await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 
         internal override void ProcessCommandClassBytes(byte sourceNodeId, byte[] commandClassBytes)

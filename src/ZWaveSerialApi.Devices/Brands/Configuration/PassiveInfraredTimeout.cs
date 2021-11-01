@@ -37,7 +37,7 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
 
         public async Task<TimeSpan> GetAsync(CancellationToken cancellationToken = default)
         {
-            var report = await _configuration.GetAsync(_nodeId, _parameterNumber, cancellationToken);
+            var report = await _configuration.GetAsync(_nodeId, _parameterNumber, cancellationToken).ConfigureAwait(false);
             var intervalSeconds = EndianHelper.ToUInt16(report.Value);
             return TimeSpan.FromSeconds(intervalSeconds);
         }
@@ -51,7 +51,7 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
             }
 
             var intervalBytes = EndianHelper.GetBytes(intervalSeconds);
-            await _configuration.SetAsync(_nodeId, _parameterNumber, false, intervalBytes, cancellationToken);
+            await _configuration.SetAsync(_nodeId, _parameterNumber, false, intervalBytes, cancellationToken).ConfigureAwait(false);
         }
     }
 }

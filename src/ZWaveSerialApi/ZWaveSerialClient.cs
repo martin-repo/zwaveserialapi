@@ -67,22 +67,22 @@ namespace ZWaveSerialApi
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
-            await _port.ConnectAsync(cancellationToken);
+            await _port.ConnectAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                (ControllerNodeId, DeviceNodeIds) = await InitializeAsync(cancellationToken);
+                (ControllerNodeId, DeviceNodeIds) = await InitializeAsync(cancellationToken).ConfigureAwait(false);
                 _logger.Debug("Serial communication initialized.");
             }
             catch
             {
-                await _port.DisconnectAsync(cancellationToken);
+                await _port.DisconnectAsync(cancellationToken).ConfigureAwait(false);
                 throw;
             }
         }
 
         public async Task DisconnectAsync(CancellationToken cancellationToken = default)
         {
-            await _port.DisconnectAsync(cancellationToken);
+            await _port.DisconnectAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()
@@ -115,19 +115,20 @@ namespace ZWaveSerialApi
 
         public async Task<GetNodeProtocolInfoResponse> GetNodeProtocolInfo(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var result = (GetNodeProtocolInfoRx)await InvokeValueFunctionAsync(GetNodeProtocolInfoTx.Create(destinationNodeId), cancellationToken);
+            var result = (GetNodeProtocolInfoRx)await InvokeValueFunctionAsync(GetNodeProtocolInfoTx.Create(destinationNodeId), cancellationToken)
+                                                    .ConfigureAwait(false);
             return new GetNodeProtocolInfoResponse(result.Listening);
         }
 
         public async Task<byte> GetSucNodeIdAsync(CancellationToken cancellationToken)
         {
-            var result = (GetSucNodeIdRx)await InvokeValueFunctionAsync(GetSucNodeIdTx.Create(), cancellationToken);
+            var result = (GetSucNodeIdRx)await InvokeValueFunctionAsync(GetSucNodeIdTx.Create(), cancellationToken).ConfigureAwait(false);
             return result.NodeId;
         }
 
         public async Task<MemoryGetIdResponse> MemoryGetIdAsync(CancellationToken cancellationToken)
         {
-            var result = (MemoryGetIdRx)await InvokeValueFunctionAsync(MemoryGetIdTx.Create(), cancellationToken);
+            var result = (MemoryGetIdRx)await InvokeValueFunctionAsync(MemoryGetIdTx.Create(), cancellationToken).ConfigureAwait(false);
             return new MemoryGetIdResponse(result.HomeId, result.NodeId);
         }
 
@@ -148,10 +149,11 @@ namespace ZWaveSerialApi
             }
 
             var applicationSlaveUpdate = await InvokeValueFunctionWithCallbackAsync<RequestNodeInfoTx, RequestNodeInfoRx, ApplicationSlaveUpdateRx?>(
-                                             requestNodeInfoTx,
-                                             functionRx => functionRx.Success,
-                                             TryGetCallbackValue,
-                                             cancellationToken);
+                                                 requestNodeInfoTx,
+                                                 functionRx => functionRx.Success,
+                                                 TryGetCallbackValue,
+                                                 cancellationToken)
+                                             .ConfigureAwait(false);
             if (applicationSlaveUpdate!.State != UpdateState.NodeInfoReceived)
             {
                 throw new TimeoutException("No RequestNodeInfo ack received within timeout period.");
@@ -162,7 +164,7 @@ namespace ZWaveSerialApi
 
         public async Task SendDataAsync(byte destinationNodeId, byte[] commandClassBytes, CancellationToken cancellationToken = default)
         {
-            await SendDataAsync(destinationNodeId, commandClassBytes, SendDataTx.DefaultTransmitOptions, cancellationToken);
+            await SendDataAsync(destinationNodeId, commandClassBytes, SendDataTx.DefaultTransmitOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SendDataAsync(
@@ -193,10 +195,11 @@ namespace ZWaveSerialApi
             try
             {
                 var transmitComplete = await InvokeValueFunctionWithCallbackAsync<SendDataTx, SendDataRx, TransmitComplete>(
-                                           sendDataTx,
-                                           functionRx => functionRx.Success,
-                                           TryGetCallbackValue,
-                                           cancellationToken);
+                                               sendDataTx,
+                                               functionRx => functionRx.Success,
+                                               TryGetCallbackValue,
+                                               cancellationToken)
+                                           .ConfigureAwait(false);
                 if (transmitComplete != TransmitComplete.Ok)
                 {
                     throw new TransmitException($"Invalid SendData result: {transmitComplete}.");
@@ -211,29 +214,31 @@ namespace ZWaveSerialApi
 
         public async Task<SerialApiGetInitDataResponse> SerialApiGetInitDataAsync(CancellationToken cancellationToken)
         {
-            var result = (SerialApiGetInitDataRx)await InvokeValueFunctionAsync(SerialApiGetInitDataTx.Create(), cancellationToken);
+            var result = (SerialApiGetInitDataRx)await InvokeValueFunctionAsync(SerialApiGetInitDataTx.Create(), cancellationToken)
+                                                     .ConfigureAwait(false);
             return new SerialApiGetInitDataResponse(result.IsStaticUpdateController, result.DeviceNodeIds);
         }
 
         public async Task<byte[]> SerialApiSetupAsync(bool enableSendDataCallbackMetrics, CancellationToken cancellationToken)
         {
-            var result = (SerialApiSetupRx)await InvokeValueFunctionAsync(SerialApiSetupTx.Create(enableSendDataCallbackMetrics), cancellationToken);
+            var result = (SerialApiSetupRx)await InvokeValueFunctionAsync(SerialApiSetupTx.Create(enableSendDataCallbackMetrics), cancellationToken)
+                                               .ConfigureAwait(false);
             return result.Response;
         }
 
         public async Task<LibraryType> TypeLibraryAsync(CancellationToken cancellationToken)
         {
-            var result = (TypeLibraryRx)await InvokeValueFunctionAsync(TypeLibraryTx.Create(), cancellationToken);
+            var result = (TypeLibraryRx)await InvokeValueFunctionAsync(TypeLibraryTx.Create(), cancellationToken).ConfigureAwait(false);
             return (LibraryType)result.LibraryType;
         }
 
         internal async Task InvokeVoidFunctionAsync(IFunctionTx function, CancellationToken cancellationToken)
         {
-            await _functionSemaphore.WaitAsync(cancellationToken);
+            await _functionSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 var frame = Frame.Create(FrameType.Request, function.FunctionArgsBytes);
-                await _port.TransmitFrameAsync(frame, cancellationToken);
+                await _port.TransmitFrameAsync(frame, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -278,12 +283,12 @@ namespace ZWaveSerialApi
 
         private async Task<(byte ControllerNodeId, byte[] DeviceNodeIds)> InitializeAsync(CancellationToken cancellationToken)
         {
-            var (_, controllerNodeId) = await MemoryGetIdAsync(cancellationToken);
+            var (_, controllerNodeId) = await MemoryGetIdAsync(cancellationToken).ConfigureAwait(false);
 
-            var (_, deviceNodeIds) = await SerialApiGetInitDataAsync(cancellationToken);
+            var (_, deviceNodeIds) = await SerialApiGetInitDataAsync(cancellationToken).ConfigureAwait(false);
             deviceNodeIds = deviceNodeIds.Where(nodeId => nodeId != controllerNodeId).ToArray();
 
-            _ = await SerialApiSetupAsync(false, cancellationToken);
+            _ = await SerialApiSetupAsync(false, cancellationToken).ConfigureAwait(false);
 
             return (controllerNodeId, deviceNodeIds);
         }
@@ -304,15 +309,16 @@ namespace ZWaveSerialApi
                 callbackSource.TrySetResult(returnValue);
             }
 
-            await _functionSemaphore.WaitAsync(cancellationToken);
+            await _functionSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 _port.FrameReceived += Callback;
 
                 var frame = Frame.Create(FrameType.Request, function.FunctionArgsBytes);
-                await _port.TransmitFrameAsync(frame, cancellationToken);
+                await _port.TransmitFrameAsync(frame, cancellationToken).ConfigureAwait(false);
 
-                if (await Task.WhenAny(callbackSource.Task, Task.Delay(CallbackTimeout, cancellationToken)) != callbackSource.Task)
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(CallbackTimeout, cancellationToken)).ConfigureAwait(false)
+                    != callbackSource.Task)
                 {
                     throw new TimeoutException("Timeout waiting for function transmit response.");
                 }
@@ -346,13 +352,14 @@ namespace ZWaveSerialApi
             _port.FrameReceived += Callback;
             try
             {
-                var result = await InvokeValueFunctionAsync(function, cancellationToken);
+                var result = await InvokeValueFunctionAsync(function, cancellationToken).ConfigureAwait(false);
                 if (!functionSuccessfulFunc((TFunctionRx)result))
                 {
                     throw new TransmitException("Transmit queue full.");
                 }
 
-                if (await Task.WhenAny(callbackSource.Task, Task.Delay(CallbackTimeout, cancellationToken)) != callbackSource.Task)
+                if (await Task.WhenAny(callbackSource.Task, Task.Delay(CallbackTimeout, cancellationToken)).ConfigureAwait(false)
+                    != callbackSource.Task)
                 {
                     throw new TimeoutException("Timeout waiting for callback.");
                 }

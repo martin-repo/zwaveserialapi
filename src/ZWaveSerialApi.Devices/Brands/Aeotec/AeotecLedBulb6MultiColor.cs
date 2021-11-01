@@ -32,7 +32,9 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
                                   {
                                       new ColorComponent(ColorComponentType.WarmWhite, 0), new ColorComponent(ColorComponentType.ColdWhite, value)
                                   };
-            await Client.GetCommandClass<ColorSwitchCommandClass>().SetAsync(NodeId, colorComponents, duration, cancellationToken);
+            await Client.GetCommandClass<ColorSwitchCommandClass>()
+                        .SetAsync(NodeId, colorComponents, duration, cancellationToken)
+                        .ConfigureAwait(false);
         }
 
         public async Task SetColorAsync(Color color, DurationType duration, CancellationToken cancellationToken)
@@ -45,7 +47,9 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
                                       new ColorComponent(ColorComponentType.Green, color.G),
                                       new ColorComponent(ColorComponentType.Blue, color.B)
                                   };
-            await Client.GetCommandClass<ColorSwitchCommandClass>().SetAsync(NodeId, colorComponents, duration, cancellationToken);
+            await Client.GetCommandClass<ColorSwitchCommandClass>()
+                        .SetAsync(NodeId, colorComponents, duration, cancellationToken)
+                        .ConfigureAwait(false);
         }
 
         public async Task SetIntensityAsync(byte intensity, DurationType duration, CancellationToken cancellationToken)
@@ -55,23 +59,27 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
                 throw new ArgumentOutOfRangeException(nameof(intensity), "Intensity must be between 0 and 99 (inclusive).");
             }
 
-            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, intensity, duration, cancellationToken);
+            await Client.GetCommandClass<MultilevelSwitchCommandClass>()
+                        .SetAsync(NodeId, intensity, duration, cancellationToken)
+                        .ConfigureAwait(false);
         }
 
         public async Task SetWarmWhiteAsync(byte value, DurationType duration, CancellationToken cancellationToken)
         {
             var colorComponents = new[] { new ColorComponent(ColorComponentType.WarmWhite, value) };
-            await Client.GetCommandClass<ColorSwitchCommandClass>().SetAsync(NodeId, colorComponents, duration, cancellationToken);
+            await Client.GetCommandClass<ColorSwitchCommandClass>()
+                        .SetAsync(NodeId, colorComponents, duration, cancellationToken)
+                        .ConfigureAwait(false);
         }
 
         public async Task TurnOffAsync(DurationType duration, CancellationToken cancellationToken)
         {
-            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, 0x00, duration, cancellationToken);
+            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, 0x00, duration, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task TurnOnAsync(DurationType duration, CancellationToken cancellationToken)
         {
-            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, 0xFF, duration, cancellationToken);
+            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, 0xFF, duration, cancellationToken).ConfigureAwait(false);
         }
     }
 }

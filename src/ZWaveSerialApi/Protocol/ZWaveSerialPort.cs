@@ -66,7 +66,7 @@ namespace ZWaveSerialApi.Protocol
             _receiveFramesTask = Task.Run(() => ReceiveFrames(_cancellationTokenSource.Token), cancellationToken);
 
             // 6.1.1 With hard reset @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
-            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
         }
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
@@ -78,7 +78,8 @@ namespace ZWaveSerialApi.Protocol
 
             _cancellationTokenSource?.Cancel();
             if (_receiveFramesTask != null
-                && await Task.WhenAny(_receiveFramesTask, Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)) != _receiveFramesTask)
+                && await Task.WhenAny(_receiveFramesTask, Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)).ConfigureAwait(false)
+                != _receiveFramesTask)
             {
                 _logger.Warning("Timed out waiting for receiveFrameTask to finish.");
             }
@@ -96,7 +97,7 @@ namespace ZWaveSerialApi.Protocol
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (await TryTransmitFrameAsync(frame, cancellationToken))
+                if (await TryTransmitFrameAsync(frame, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -110,8 +111,8 @@ namespace ZWaveSerialApi.Protocol
 
                 // 6.3 Retransmission @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
                 _logger.Debug("Reconnecting serial port.");
-                await DisconnectAsync(cancellationToken);
-                await ConnectAsync(cancellationToken);
+                await DisconnectAsync(cancellationToken).ConfigureAwait(false);
+                await ConnectAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -243,9 +244,10 @@ namespace ZWaveSerialApi.Protocol
                 MessageTypeReceived += MessageTypeHandler;
                 try
                 {
-                    await WriteFrameAsync(frame, cancellationToken);
+                    await WriteFrameAsync(frame, cancellationToken).ConfigureAwait(false);
 
-                    if (await Task.WhenAny(messageTypeSource.Task, Task.Delay(_frameDeliveryTimeout, cancellationToken)) == messageTypeSource.Task
+                    if (await Task.WhenAny(messageTypeSource.Task, Task.Delay(_frameDeliveryTimeout, cancellationToken)).ConfigureAwait(false)
+                        == messageTypeSource.Task
                         && messageTypeSource.Task.Result == MessageType.Ack)
                     {
                         return true;
@@ -258,7 +260,7 @@ namespace ZWaveSerialApi.Protocol
 
                 // 6.3 Retransmission @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
                 var retransmissionDelay = TimeSpan.FromMilliseconds(100 + transmission * 1000);
-                await Task.Delay(retransmissionDelay, cancellationToken);
+                await Task.Delay(retransmissionDelay, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
@@ -285,7 +287,7 @@ namespace ZWaveSerialApi.Protocol
 
         private async Task WriteFrameAsync(Frame frame, CancellationToken cancellationToken)
         {
-            await _writeSemaphore.WaitAsync(cancellationToken);
+            await _writeSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 _port.Write(frame.FrameBytes, 0, frame.FrameBytes.Length);
