@@ -295,7 +295,7 @@ namespace ZWaveSerialApi
 
         private async Task<IFunctionRx> InvokeValueFunctionAsync(IFunctionTx function, CancellationToken cancellationToken)
         {
-            var callbackSource = new TaskCompletionSource<IFunctionRx>();
+            var callbackSource = new TaskCompletionSource<IFunctionRx>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void Callback(object? sender, FrameEventArgs eventArgs)
             {
@@ -339,7 +339,7 @@ namespace ZWaveSerialApi
             CancellationToken cancellationToken)
             where TFunctionTx : IFunctionTx where TFunctionRx : IFunctionRx
         {
-            var callbackSource = new TaskCompletionSource<TCallbackValue>();
+            var callbackSource = new TaskCompletionSource<TCallbackValue>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void Callback(object? sender, FrameEventArgs eventArgs)
             {

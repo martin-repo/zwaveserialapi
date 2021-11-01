@@ -26,7 +26,7 @@ namespace ZWaveSerialApi.CommandClasses
             ConcurrentDictionary<byte, TaskCompletionSource<T>> callbackSources,
             CancellationToken cancellationToken)
         {
-            var callbackSource = callbackSources.GetOrAdd(destinationNodeId, _ => new TaskCompletionSource<T>());
+            var callbackSource = callbackSources.GetOrAdd(destinationNodeId, _ => new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously));
 
             try
             {

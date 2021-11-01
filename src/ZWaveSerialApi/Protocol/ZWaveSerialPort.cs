@@ -63,7 +63,7 @@ namespace ZWaveSerialApi.Protocol
             _logger.Debug("Serial port {PortName} opened.", _port.PortName);
 
             _cancellationTokenSource = new CancellationTokenSource();
-            _receiveFramesTask = Task.Run(() => ReceiveFrames(_cancellationTokenSource.Token), cancellationToken);
+            _receiveFramesTask = Task.Factory.StartNew(() => ReceiveFrames(_cancellationTokenSource.Token), cancellationToken, TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
 
             // 6.1.1 With hard reset @ INS12350-Serial-API-Host-Appl.-Prg.-Guide.pdf
             await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
@@ -231,7 +231,7 @@ namespace ZWaveSerialApi.Protocol
         {
             for (var transmission = 0; transmission < MaxAttempts; transmission++)
             {
-                var messageTypeSource = new TaskCompletionSource<MessageType>();
+                var messageTypeSource = new TaskCompletionSource<MessageType>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 void MessageTypeHandler(object? sender, MessageTypeEventArgs eventArgs)
                 {
