@@ -18,8 +18,8 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
     using ZWaveSerialApi.Devices.Utilities;
 
     [DeviceName("Aeotec LED Bulb 6 MultiColor")]
-    [DeviceType(0x0371, 0x0003, 0x0002)]
-    // US version:[DeviceType(0x0371, 0x0103, 0x0002)]
+    [DeviceType(0x0371, 0x0003, 0x0002, "EU")]
+    [DeviceType(0x0371, 0x0103, 0x0002, "US")]
     public class AeotecLedBulb6MultiColor : Device, IMultiColorBulb
     {
         internal AeotecLedBulb6MultiColor(IZWaveSerialClient client, DeviceState deviceState)
@@ -67,9 +67,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
             }
 
             var value = (byte)Math.Round((double)percentage / 100 * 99, MidpointRounding.AwayFromZero);
-            await Client.GetCommandClass<MultilevelSwitchCommandClass>()
-                        .SetAsync(NodeId, value, duration, cancellationToken)
-                        .ConfigureAwait(false);
+            await Client.GetCommandClass<MultilevelSwitchCommandClass>().SetAsync(NodeId, value, duration, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SetWarmWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken)

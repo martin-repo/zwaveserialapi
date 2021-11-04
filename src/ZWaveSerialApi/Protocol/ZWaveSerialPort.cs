@@ -195,7 +195,7 @@ namespace ZWaveSerialApi.Protocol
 
             _port.Read(frameBytes, 2, frameLength);
 
-            _logger.Debug("<< {FrameBytes}", BitConverter.ToString(frameBytes));
+            _logger.Verbose("<< {FrameBytes}", BitConverter.ToString(frameBytes));
 
             frame = new Frame(frameBytes);
             return true;
@@ -218,7 +218,7 @@ namespace ZWaveSerialApi.Protocol
                 case MessageType.Ack:
                 case MessageType.Nack:
                 case MessageType.Cancel:
-                    _logger.Debug("<< {MessageType}", messageType);
+                    _logger.Verbose("<< {MessageType}", messageType);
                     return true;
                 default:
                     _logger.Error("Invalid message type {MessageType}", messageType);
@@ -291,7 +291,7 @@ namespace ZWaveSerialApi.Protocol
             try
             {
                 _port.Write(frame.FrameBytes, 0, frame.FrameBytes.Length);
-                _logger.Debug(">> {FrameBytes}", BitConverter.ToString(frame.FrameBytes));
+                _logger.Verbose(">> {FrameBytes}", BitConverter.ToString(frame.FrameBytes));
             }
             finally
             {
@@ -307,7 +307,7 @@ namespace ZWaveSerialApi.Protocol
             try
             {
                 _port.Write(messageTypeBytes, 0, messageTypeBytes.Length);
-                _logger.Debug(">> {MessageType}", messageType);
+                _logger.Verbose(">> {MessageType}", messageType);
             }
             finally
             {

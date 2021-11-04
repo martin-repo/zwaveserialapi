@@ -52,8 +52,6 @@ namespace ZWaveSerialApi.Devices
         {
         }
 
-        public event EventHandler<DeviceEventArgs>? DeviceWakeUp;
-
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
             await _client.ConnectAsync(cancellationToken).ConfigureAwait(false);
@@ -249,9 +247,17 @@ namespace ZWaveSerialApi.Devices
 
             _logger.Debug("Device {DeviceNodeId} - {DeviceName} woke up.", ByteToHexString(nodeId), device != null ? device.Name : "Unknown");
 
-            if (device != null)
+            if (device is WakeUpDevice wakeUpDevice)
             {
-                DeviceWakeUp?.Invoke(this, new DeviceEventArgs(device));
+                wakeUpDevice.IsAwake = true;
+                try
+                {
+                    wakeUpDevice.OnWakeUpNotification();
+                }
+                finally
+                {
+                    wakeUpDevice.IsAwake = false;
+                }
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);

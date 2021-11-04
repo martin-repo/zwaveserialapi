@@ -99,7 +99,7 @@ namespace DeveloperTest
             Console.WriteLine($"MotionTimeout: {timeout.TotalSeconds}");
 
             // Set new value
-            await multiSensor.Parameters.MotionTimeout.SetAsync(TimeSpan.FromSeconds(10));
+            await multiSensor.Parameters.MotionTimeout.SetAsync(TimeSpan.FromMinutes(1));
         }
 
         public async Task ValueConvert()

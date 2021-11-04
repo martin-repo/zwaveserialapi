@@ -10,10 +10,14 @@ namespace ZWaveSerialApi.Devices.Utilities
 
     using ZWaveSerialApi.Devices.Device;
 
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     internal class DeviceTypeAttribute : Attribute
     {
-        public DeviceTypeAttribute(ushort manufacturerId, ushort productTypeId, ushort productId)
+        public DeviceTypeAttribute(
+            ushort manufacturerId,
+            ushort productTypeId,
+            ushort productId,
+            string region = "")
         {
             DeviceType = new DeviceType(manufacturerId, productTypeId, productId);
         }

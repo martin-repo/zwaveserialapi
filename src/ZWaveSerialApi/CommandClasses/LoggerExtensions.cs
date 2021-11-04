@@ -21,7 +21,7 @@ namespace ZWaveSerialApi.CommandClasses
         {
             var nodeId = "0x" + BitConverter.ToString(new[] { sourceNodeId });
             var command = string.Join(':', commandParts.Select(commandPart => commandPart.ToString()));
-            logger.Debug("<< (Node {NodeId}) {Command} {CommandClassBytes}", nodeId, command, BitConverter.ToString(commandClassBytes));
+            logger.Debug("[Device {NodeId}] << {Command} {CommandClassBytes}", nodeId, command, BitConverter.ToString(commandClassBytes));
         }
 
         public static void OutboundCommand(
@@ -32,7 +32,7 @@ namespace ZWaveSerialApi.CommandClasses
         {
             var nodeId = "0x" + BitConverter.ToString(new[] { destinationNodeId });
             var command = string.Join(':', commandParts.Select(commandPart => commandPart.ToString()));
-            logger.Debug(">> (Node {NodeId}) {Command} {CommandClassBytes}", nodeId, command, BitConverter.ToString(commandClassBytes));
+            logger.Debug("[Device {NodeId}] >> {Command} {CommandClassBytes}", nodeId, command, BitConverter.ToString(commandClassBytes));
         }
     }
 }

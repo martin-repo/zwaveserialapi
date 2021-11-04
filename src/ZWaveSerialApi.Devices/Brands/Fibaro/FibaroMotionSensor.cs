@@ -18,12 +18,12 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
 
     [DeviceName("Fibaro Motion Sensor")]
     [DeviceType(0x010F, 0x0801, 0x1002)]
-    public class FibaroMotionSensor : Device, IMotionSensor
+    public class FibaroMotionSensor : WakeUpDevice, IMotionSensor
     {
         internal FibaroMotionSensor(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
         {
-            Parameters = new FibaroMotionSensorParameters(NodeId, Client.GetCommandClass<ConfigurationCommandClass>());
+            Parameters = new FibaroMotionSensorParameters(this, Client.GetCommandClass<ConfigurationCommandClass>());
 
             var notification = Client.GetCommandClass<NotificationCommandClass>();
             notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;
@@ -37,6 +37,7 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
 
         public async Task<TimeSpan> GetMotionTimeoutAsync(CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await Parameters.MotionTimeout.GetAsync(cancellationToken);
         }
 

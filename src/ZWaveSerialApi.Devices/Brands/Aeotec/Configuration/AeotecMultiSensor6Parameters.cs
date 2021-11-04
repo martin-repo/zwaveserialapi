@@ -11,9 +11,9 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec.Configuration
 
     public class AeotecMultiSensor6Parameters
     {
-        internal AeotecMultiSensor6Parameters(byte nodeId, ConfigurationCommandClass configuration)
+        internal AeotecMultiSensor6Parameters(AeotecMultiSensor6 device, ConfigurationCommandClass configuration)
         {
-            MotionTimeout = new MotionTimeout(nodeId, 0x03, 10, 3600, configuration);
+            MotionTimeout = new MotionTimeout(device, 0x03, 10, 3600, configuration);
         }
 
         public MotionTimeout MotionTimeout { get; }

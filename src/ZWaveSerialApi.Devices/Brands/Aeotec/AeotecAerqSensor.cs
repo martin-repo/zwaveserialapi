@@ -16,7 +16,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec aërQ Temperature & Humidity Sensor")]
     [DeviceType(0x0371, 0x0002, 0x0009)]
-    public class AeotecAerqSensor : Device, ITemperatureSensor, IHumiditySensor, IDewPointSensor
+    public class AeotecAerqSensor : WakeUpDevice, ITemperatureSensor, IHumiditySensor, IDewPointSensor
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
@@ -35,21 +35,29 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
         public async Task<MultilevelSensorReport> GetDewPointAsync(TemperatureScale scale, CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.DewPoint, scale, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<MultilevelSensorReport> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.Humidity, scale, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<MultilevelSensorReport> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.AirTemperature, scale, cancellationToken).ConfigureAwait(false);
         }
 
         private void OnMultiLevelSensorReport(object? sender, MultilevelSensorEventArgs eventArgs)
         {
+            if (eventArgs.SourceNodeId != NodeId)
+            {
+                return;
+            }
+
             var report = new MultilevelSensorReport(eventArgs.SensorType, eventArgs.Value, eventArgs.Unit, eventArgs.Label, eventArgs.Scale);
 
             switch (eventArgs.SensorType)

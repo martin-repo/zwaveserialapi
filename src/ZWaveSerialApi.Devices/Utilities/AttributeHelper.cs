@@ -7,6 +7,8 @@
 namespace ZWaveSerialApi.Devices.Utilities
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
     using ZWaveSerialApi.Devices.Device;
@@ -18,9 +20,9 @@ namespace ZWaveSerialApi.Devices.Utilities
             return type.GetCustomAttribute<DeviceNameAttribute>()?.Name;
         }
 
-        public static DeviceType? GetDeviceType(Type type)
+        public static IEnumerable<DeviceType> GetDeviceTypes(Type type)
         {
-            return type.GetCustomAttribute<DeviceTypeAttribute>()?.DeviceType;
+            return type.GetCustomAttributes<DeviceTypeAttribute>().Select(attribute => attribute.DeviceType);
         }
     }
 }

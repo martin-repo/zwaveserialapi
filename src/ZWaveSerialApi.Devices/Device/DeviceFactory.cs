@@ -45,15 +45,17 @@ namespace ZWaveSerialApi.Devices.Device
 
             foreach (var brandType in brandTypes)
             {
-                var deviceType = AttributeHelper.GetDeviceType(brandType);
-                if (deviceType == null)
+                var deviceTypes = AttributeHelper.GetDeviceTypes(brandType).ToList();
+                if (!deviceTypes.Any())
                 {
                     continue;
                 }
 
                 var constructor = brandType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
-
-                _deviceDelegates.Add(deviceType, (client, deviceState) => (IDevice)constructor.Invoke(new object[] { client, deviceState }));
+                foreach (var deviceType in deviceTypes)
+                {
+                    _deviceDelegates.Add(deviceType, (client, deviceState) => (IDevice)constructor.Invoke(new object[] { client, deviceState }));
+                }
             }
         }
     }

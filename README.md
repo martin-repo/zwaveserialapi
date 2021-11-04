@@ -62,11 +62,11 @@ Read and write device configuration parameters.
 var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
 // Get current value
-var timeout = await multiSensor.Parameters.PassiveInfraredTimeout.GetAsync();
-Console.WriteLine($"PassiveInfraredTimeout: {timeout.TotalSeconds}");
+var timeout = await multiSensor.Parameters.MotionTimeout.GetAsync();
+Console.WriteLine($"MotionTimeout: {timeout.TotalSeconds}");
 
 // Set new value
-await multiSensor.Parameters.PassiveInfraredTimeout.SetAsync(TimeSpan.FromSeconds(10));
+await multiSensor.Parameters.MotionTimeout.SetAsync(TimeSpan.FromMinutes(1));
 ```
 ### Using device location
 When using multiple devices of the same type, it helps to assign a location to each device.

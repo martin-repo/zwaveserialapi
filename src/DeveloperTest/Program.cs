@@ -13,7 +13,7 @@ namespace DeveloperTest
     {
         private static async Task Main()
         {
-            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+            AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
             {
                 if (eventArgs.ExceptionObject is Exception exception)
                 {

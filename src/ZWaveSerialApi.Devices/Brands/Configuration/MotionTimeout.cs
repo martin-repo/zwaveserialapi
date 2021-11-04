@@ -11,6 +11,7 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
     using System.Threading.Tasks;
 
     using ZWaveSerialApi.CommandClasses.Application.Configuration;
+    using ZWaveSerialApi.Devices.Device;
     using ZWaveSerialApi.Utilities;
 
     /// <summary>
@@ -19,19 +20,19 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
     public class MotionTimeout
     {
         private readonly ConfigurationCommandClass _configuration;
+        private readonly Device _device;
         private readonly short _maxValue;
         private readonly short _minValue;
-        private readonly byte _nodeId;
         private readonly byte _parameterNumber;
 
         internal MotionTimeout(
-            byte nodeId,
+            Device device,
             byte parameterNumber,
             short minValue,
             short maxValue,
             ConfigurationCommandClass configuration)
         {
-            _nodeId = nodeId;
+            _device = device;
             _parameterNumber = parameterNumber;
             _minValue = minValue;
             _maxValue = maxValue;
@@ -40,13 +41,17 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
 
         public async Task<TimeSpan> GetAsync(CancellationToken cancellationToken = default)
         {
-            var report = await _configuration.GetAsync(_nodeId, _parameterNumber, cancellationToken).ConfigureAwait(false);
+            (_device as WakeUpDevice)?.AssertAwake();
+
+            var report = await _configuration.GetAsync(_device.NodeId, _parameterNumber, cancellationToken).ConfigureAwait(false);
             var intervalSeconds = EndianHelper.ToUInt16(report.Value);
             return TimeSpan.FromSeconds(intervalSeconds);
         }
 
         public async Task SetAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         {
+            (_device as WakeUpDevice)?.AssertAwake();
+
             var intervalSeconds = (ushort)timeout.TotalSeconds;
             if (intervalSeconds < _minValue || intervalSeconds > _maxValue)
             {
@@ -54,7 +59,7 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
             }
 
             var intervalBytes = EndianHelper.GetBytes(intervalSeconds);
-            await _configuration.SetAsync(_nodeId, _parameterNumber, false, intervalBytes, cancellationToken).ConfigureAwait(false);
+            await _configuration.SetAsync(_device.NodeId, _parameterNumber, false, intervalBytes, cancellationToken).ConfigureAwait(false);
         }
     }
 }

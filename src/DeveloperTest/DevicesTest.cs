@@ -20,6 +20,7 @@ namespace DeveloperTest
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
     using ZWaveSerialApi.Devices;
     using ZWaveSerialApi.Devices.Brands.Aeotec;
+    using ZWaveSerialApi.Devices.Brands.Fibaro;
 
     internal class DevicesTest
     {
@@ -51,6 +52,12 @@ namespace DeveloperTest
             await network.ConnectAsync();
 
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+            var multiSensorWakeUpCapabilities = await multiSensor.GetWakeUpIntervalCapabilitiesAsync();
+            var multiSensorWakeUpInterval = await multiSensor.GetWakeUpIntervalAsync();
+            if (multiSensorWakeUpInterval != multiSensorWakeUpCapabilities.MaximumInterval)
+            {
+                //await multiSensor.SetWakeUpIntervalAsync(multiSensorWakeUpCapabilities.MaximumInterval);
+            }
 
             var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
             logger.Information($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");

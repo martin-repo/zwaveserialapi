@@ -11,9 +11,9 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro.Configuration
 
     public class FibaroMotionSensorParameters
     {
-        internal FibaroMotionSensorParameters(byte nodeId, ConfigurationCommandClass configuration)
+        internal FibaroMotionSensorParameters(FibaroMotionSensor device, ConfigurationCommandClass configuration)
         {
-            MotionTimeout = new MotionTimeout(nodeId, 0x06, 1, 32767, configuration);
+            MotionTimeout = new MotionTimeout(device, 0x06, 1, 32767, configuration);
         }
 
         public MotionTimeout MotionTimeout { get; }

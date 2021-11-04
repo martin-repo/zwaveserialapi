@@ -19,14 +19,14 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec MultiSensor 6")]
     [DeviceType(0x0086, 0x0002, 0x0064)]
-    public class AeotecMultiSensor6 : Device, IMotionSensor, ITemperatureSensor, IHumiditySensor
+    public class AeotecMultiSensor6 : WakeUpDevice, IMotionSensor, ITemperatureSensor, IHumiditySensor
     {
         private readonly MultilevelSensorCommandClass _multilevelSensor;
 
         internal AeotecMultiSensor6(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
         {
-            Parameters = new AeotecMultiSensor6Parameters(NodeId, Client.GetCommandClass<ConfigurationCommandClass>());
+            Parameters = new AeotecMultiSensor6Parameters(this, Client.GetCommandClass<ConfigurationCommandClass>());
 
             _multilevelSensor = Client.GetCommandClass<MultilevelSensorCommandClass>();
             _multilevelSensor.Report += OnMultiLevelSensorReport;
@@ -47,21 +47,29 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
         public async Task<MultilevelSensorReport> GetHumidityAsync(HumidityScale scale, CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.Humidity, scale, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<TimeSpan> GetMotionTimeoutAsync(CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await Parameters.MotionTimeout.GetAsync(cancellationToken);
         }
 
         public async Task<MultilevelSensorReport> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken = default)
         {
+            AssertAwake();
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.AirTemperature, scale, cancellationToken).ConfigureAwait(false);
         }
 
         private void OnMultiLevelSensorReport(object? sender, MultilevelSensorEventArgs eventArgs)
         {
+            if (eventArgs.SourceNodeId != NodeId)
+            {
+                return;
+            }
+
             var report = new MultilevelSensorReport(eventArgs.SensorType, eventArgs.Value, eventArgs.Unit, eventArgs.Label, eventArgs.Scale);
 
             switch (eventArgs.SensorType)

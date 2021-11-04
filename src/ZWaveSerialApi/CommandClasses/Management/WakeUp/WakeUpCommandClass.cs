@@ -32,7 +32,9 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
         public event EventHandler<WakeUpNotificationEventArgs>? Notification;
 
-        public async Task<WakeUpIntervalCapabilitiesReport> IntervalCapabilitiesGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task<WakeUpIntervalCapabilitiesReport> IntervalCapabilitiesGetAsync(
+            byte destinationNodeId,
+            CancellationToken cancellationToken = default)
         {
             var command = WakeUpCommand.IntervalCapabilitiesGet;
 
@@ -45,7 +47,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
                        .ConfigureAwait(false);
         }
 
-        public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
         {
             var command = WakeUpCommand.IntervalGet;
 
@@ -58,7 +60,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
                        .ConfigureAwait(false);
         }
 
-        public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken)
+        public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken = default)
         {
             var command = WakeUpCommand.IntervalSet;
 
@@ -74,7 +76,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
         {
             var command = WakeUpCommand.NoMoreInformation;
 
