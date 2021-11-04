@@ -56,6 +56,23 @@ await network.ConnectAsync();
 
 await network.SaveAsync("ZWaveNetwork.json");
 ```
+### Wake up processing
+Make calls to battery operated devices while they are awake, either every time or just once.
+```cs
+var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+multiSensor.WakeUpNotification += (_, _) =>
+{
+    // ... processing every time device wakes up ...
+};
+
+async void MultiSensorSetupAsync(object? sender, EventArgs eventArgs)
+{
+    // ... one-time setup of device when it wakes up ...
+    multiSensor.WakeUpNotification -= MultiSensorSetupAsync;
+}
+
+multiSensor.WakeUpNotification += MultiSensorSetupAsync;
+```
 ### Device parameters
 Read and write device configuration parameters.
 ```cs
