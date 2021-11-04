@@ -129,5 +129,25 @@ namespace DeveloperTest
 
             Console.ReadKey();
         }
+
+        public async Task WakeUp()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
+            multiSensor.WakeUpNotification += (_, _) =>
+            {
+                // ... regular processing when device wakes up ...
+            };
+
+            async void MultiSensorSetupAsync(object? sender, EventArgs eventArgs)
+            {
+                // ... one-time setup of device when it wakes up ...
+                multiSensor.WakeUpNotification -= MultiSensorSetupAsync;
+            }
+
+            multiSensor.WakeUpNotification += MultiSensorSetupAsync;
+        }
     }
 }

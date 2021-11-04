@@ -22,7 +22,7 @@ namespace ZWaveSerialApi.Devices.Device
             _wakeUp = Client.GetCommandClass<WakeUpCommandClass>();
         }
 
-        public event EventHandler<WakeUpNotificationEventArgs>? WakeUpNotification;
+        public event EventHandler? WakeUpNotification;
 
         public bool IsAwake { get; internal set; }
 
@@ -60,7 +60,7 @@ namespace ZWaveSerialApi.Devices.Device
 
         internal void OnWakeUpNotification()
         {
-            WakeUpNotification?.Invoke(this, new WakeUpNotificationEventArgs(NodeId));
+            WakeUpNotification?.Invoke(this, EventArgs.Empty);
         }
     }
 }
