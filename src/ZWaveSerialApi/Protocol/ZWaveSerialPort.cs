@@ -60,7 +60,7 @@ namespace ZWaveSerialApi.Protocol
             _port.Open();
             _port.DiscardInBuffer();
 
-            _logger.Debug("Serial port {PortName} opened.", _port.PortName);
+            _logger.Information("Serial port {PortName} opened.", _port.PortName);
 
             _cancellationTokenSource = new CancellationTokenSource();
             _receiveFramesTask = Task.Factory.StartNew(() => ReceiveFrames(_cancellationTokenSource.Token), cancellationToken, TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);

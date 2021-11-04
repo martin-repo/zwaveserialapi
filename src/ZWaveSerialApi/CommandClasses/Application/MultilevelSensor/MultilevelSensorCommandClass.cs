@@ -21,7 +21,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
         private readonly ConcurrentDictionary<byte, TaskCompletionSource<MultilevelSensorReport>> _reportCallbackSources = new();
 
         public MultilevelSensorCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.MultilevelSensor, client)
         {
             _logger = logger.ForContext<MultilevelSensorCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -35,6 +35,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             CancellationToken cancellationToken)
             where T : Enum
         {
+            var command = MultilevelSensorCommand.Get;
+
             var expectedScaleEnumType = AttributeHelper.GetScaleEnumType(sensorType);
             if (expectedScaleEnumType != scale.GetType())
             {
@@ -44,11 +46,12 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             var scaleValue = Convert.ToByte(scale);
 
             var commandClassBytes = new byte[4];
-            commandClassBytes[0] = (byte)CommandClassType.MultilevelSensor;
-            commandClassBytes[1] = (byte)MultilevelSensorCommand.Get;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
             commandClassBytes[2] = (byte)sensorType;
             commandClassBytes[3] = ConstructMetadataByte(0, scaleValue, 0);
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command, sensorType);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
@@ -67,6 +70,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
                 _logger.Error("Unsupported type {Type}", BitConverter.ToString(commandClassBytes, 2, 1));
                 return;
             }
+
+            _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command, sensorType);
 
             var scaleEnumType = AttributeHelper.GetScaleEnumType(sensorType);
 

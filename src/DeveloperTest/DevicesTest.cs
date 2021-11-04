@@ -51,7 +51,7 @@ namespace DeveloperTest
             await network.ConnectAsync();
 
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
-            
+
             var temperatureReport = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
             logger.Information($"Temperature: {temperatureReport.Value}{temperatureReport.Unit}");
 

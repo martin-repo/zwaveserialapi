@@ -7,8 +7,12 @@
 namespace ZWaveSerialApi.Devices.Brands.Fibaro
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
+    using ZWaveSerialApi.CommandClasses.Application.Configuration;
     using ZWaveSerialApi.CommandClasses.Application.Notification;
+    using ZWaveSerialApi.Devices.Brands.Fibaro.Configuration;
     using ZWaveSerialApi.Devices.Device;
     using ZWaveSerialApi.Devices.Utilities;
 
@@ -19,6 +23,8 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
         internal FibaroMotionSensor(IZWaveSerialClient client, DeviceState deviceState)
             : base(client, deviceState)
         {
+            Parameters = new FibaroMotionSensorParameters(NodeId, Client.GetCommandClass<ConfigurationCommandClass>());
+
             var notification = Client.GetCommandClass<NotificationCommandClass>();
             notification.HomeSecurityStateChanged += OnNotificationHomeSecurityStateChanged;
         }
@@ -26,6 +32,13 @@ namespace ZWaveSerialApi.Devices.Brands.Fibaro
         public event EventHandler? MotionDetected;
 
         public event EventHandler? MotionIdle;
+
+        public FibaroMotionSensorParameters Parameters { get; }
+
+        public async Task<TimeSpan> GetMotionTimeoutAsync(CancellationToken cancellationToken = default)
+        {
+            return await Parameters.MotionTimeout.GetAsync(cancellationToken);
+        }
 
         private void OnNotificationHomeSecurityStateChanged(object? sender, HomeSecurityEventArgs eventArgs)
         {

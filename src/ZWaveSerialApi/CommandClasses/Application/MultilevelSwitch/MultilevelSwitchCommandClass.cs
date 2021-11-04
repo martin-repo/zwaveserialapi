@@ -17,7 +17,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
         private readonly ILogger _logger;
 
         public MultilevelSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.MultilevelSwitch, client)
         {
             _logger = logger.ForContext<MultilevelSwitchCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -33,12 +33,15 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSwitch
                 throw new ArgumentOutOfRangeException(nameof(level), "Level must be 0 to 99 or 255.");
             }
 
+            var command = MultilevelSwitchCommand.Set;
+
             var commandClassBytes = new byte[4];
-            commandClassBytes[0] = (byte)CommandClassType.MultilevelSwitch;
-            commandClassBytes[1] = (byte)MultilevelSwitchCommand.Set;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
             commandClassBytes[2] = level;
             commandClassBytes[3] = (byte)duration;
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 

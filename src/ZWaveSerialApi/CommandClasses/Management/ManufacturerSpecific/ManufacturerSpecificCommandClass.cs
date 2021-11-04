@@ -21,17 +21,20 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
         private readonly ConcurrentDictionary<byte, TaskCompletionSource<ManufacturerSpecificReport>> _reportCallbackSources = new();
 
         public ManufacturerSpecificCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.ManufacturerSpecific, client)
         {
             _logger = logger.ForContext<ManufacturerSpecificCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task<ManufacturerSpecificReport> GetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var commandClassBytes = new byte[2];
-            commandClassBytes[0] = (byte)CommandClassType.ManufacturerSpecific;
-            commandClassBytes[1] = (byte)ManufacturerSpecificCommand.Get;
+            var command = ManufacturerSpecificCommand.Get;
 
+            var commandClassBytes = new byte[2];
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
+
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
@@ -42,6 +45,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
             {
                 _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
             }
+
+            _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
 
             if (!_reportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
             {

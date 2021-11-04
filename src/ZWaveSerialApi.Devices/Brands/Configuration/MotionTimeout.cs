@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="PassiveInfraredTimeout.cs" company="Martin Karlsson">
+// <copyright file="MotionTimeout.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
@@ -13,7 +13,10 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
     using ZWaveSerialApi.CommandClasses.Application.Configuration;
     using ZWaveSerialApi.Utilities;
 
-    public class PassiveInfraredTimeout
+    /// <summary>
+    /// How long time, in seconds, a sensor should wait after last motion until sending an idle message.
+    /// </summary>
+    public class MotionTimeout
     {
         private readonly ConfigurationCommandClass _configuration;
         private readonly short _maxValue;
@@ -21,7 +24,7 @@ namespace ZWaveSerialApi.Devices.Brands.Configuration
         private readonly byte _nodeId;
         private readonly byte _parameterNumber;
 
-        internal PassiveInfraredTimeout(
+        internal MotionTimeout(
             byte nodeId,
             byte parameterNumber,
             short minValue,

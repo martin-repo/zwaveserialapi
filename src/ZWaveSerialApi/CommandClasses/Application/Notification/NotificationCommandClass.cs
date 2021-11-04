@@ -17,7 +17,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
         private readonly ILogger _logger;
 
         public NotificationCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.Notification, client)
         {
             _logger = logger.ForContext<NotificationCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -68,6 +68,13 @@ namespace ZWaveSerialApi.CommandClasses.Application.Notification
                 case HomeSecurityState.Idle:
                 case HomeSecurityState.CoverTampering:
                 case HomeSecurityState.MotionDetection:
+                    _logger.InboundCommand(
+                        sourceNodeId,
+                        commandClassBytes,
+                        Type,
+                        NotificationCommand.Report,
+                        NotificationType.HomeSecurity,
+                        state);
                     var parameters = parameterLength > 0 ? commandClassBytes[9..(9 + parameterLength)] : Array.Empty<byte>();
                     HomeSecurityStateChanged?.Invoke(this, new HomeSecurityEventArgs(sourceNodeId, state, parameters));
                     break;

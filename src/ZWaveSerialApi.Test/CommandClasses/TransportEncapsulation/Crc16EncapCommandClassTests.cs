@@ -46,6 +46,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
         {
             var loggerMock = new Mock<ILogger>();
             loggerMock.Setup(mock => mock.ForContext<It.IsAnyType>()).Returns(loggerMock.Object);
+            loggerMock.Setup(mock => mock.ForContext(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(loggerMock.Object);
 
             _clientMock = new Mock<IZWaveSerialClient>();
             _clientMock.SetupGet(mock => mock.ControllerNodeId).Returns(1);
@@ -56,7 +57,7 @@ namespace ZWaveSerialApi.Test.CommandClasses.TransportEncapsulation
         private class UnitTestCommandClass : CommandClass
         {
             public UnitTestCommandClass(IZWaveSerialClient client)
-                : base(client)
+                : base(CommandClassType.Basic, client)
             {
             }
 

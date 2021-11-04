@@ -95,11 +95,11 @@ namespace DeveloperTest
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
             // Get current value
-            var timeout = await multiSensor.Parameters.PassiveInfraredTimeout.GetAsync();
-            Console.WriteLine($"PassiveInfraredTimeout: {timeout.TotalSeconds}");
+            var timeout = await multiSensor.Parameters.MotionTimeout.GetAsync();
+            Console.WriteLine($"MotionTimeout: {timeout.TotalSeconds}");
 
             // Set new value
-            await multiSensor.Parameters.PassiveInfraredTimeout.SetAsync(TimeSpan.FromSeconds(10));
+            await multiSensor.Parameters.MotionTimeout.SetAsync(TimeSpan.FromSeconds(10));
         }
 
         public async Task ValueConvert()

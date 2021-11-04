@@ -25,7 +25,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
         private readonly ILogger _logger;
 
         public WakeUpCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.WakeUp, client)
         {
             _logger = logger.ForContext<WakeUpCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -34,44 +34,56 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
 
         public async Task<WakeUpIntervalCapabilitiesReport> IntervalCapabilitiesGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var commandClassBytes = new byte[2];
-            commandClassBytes[0] = (byte)CommandClassType.WakeUp;
-            commandClassBytes[1] = (byte)WakeUpCommand.IntervalCapabilitiesGet;
+            var command = WakeUpCommand.IntervalCapabilitiesGet;
 
+            var commandClassBytes = new byte[2];
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
+
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalCapabilitiesReportCallbackSources, cancellationToken)
                        .ConfigureAwait(false);
         }
 
         public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var commandClassBytes = new byte[2];
-            commandClassBytes[0] = (byte)CommandClassType.WakeUp;
-            commandClassBytes[1] = (byte)WakeUpCommand.IntervalGet;
+            var command = WakeUpCommand.IntervalGet;
 
+            var commandClassBytes = new byte[2];
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
+
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalReportCallbackSources, cancellationToken)
                        .ConfigureAwait(false);
         }
 
         public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken)
         {
+            var command = WakeUpCommand.IntervalSet;
+
             var commandClassBytes = new byte[6];
-            commandClassBytes[0] = (byte)CommandClassType.WakeUp;
-            commandClassBytes[1] = (byte)WakeUpCommand.IntervalSet;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
 
             EndianHelper.GetBytes((int)interval.TotalSeconds, 3).CopyTo(commandClassBytes, 2);
 
             commandClassBytes[5] = Client.ControllerNodeId;
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
+            var command = WakeUpCommand.NoMoreInformation;
+
             var commandClassBytes = new byte[2];
-            commandClassBytes[0] = (byte)CommandClassType.WakeUp;
-            commandClassBytes[1] = (byte)WakeUpCommand.NoMoreInformation;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
 
             // Only use TransmitOption.Ack since node is known after having sent wake up notification.
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, TransmitOption.Ack, cancellationToken).ConfigureAwait(false);
         }
 
@@ -81,12 +93,15 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             switch (command)
             {
                 case WakeUpCommand.IntervalReport:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     ProcessIntervalReport(sourceNodeId, commandClassBytes);
                     break;
                 case WakeUpCommand.Notification:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     Notification?.Invoke(this, new WakeUpNotificationEventArgs(sourceNodeId));
                     break;
                 case WakeUpCommand.IntervalCapabilitiesReport:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     ProcessIntervalCapabilitiesReport(sourceNodeId, commandClassBytes);
                     break;
                 default:

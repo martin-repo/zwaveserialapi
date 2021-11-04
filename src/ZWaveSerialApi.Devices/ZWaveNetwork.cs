@@ -59,7 +59,7 @@ namespace ZWaveSerialApi.Devices
             await _client.ConnectAsync(cancellationToken).ConfigureAwait(false);
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-            _logger.Debug("Network initialized.");
+            _logger.Information("Network initialized.");
 
             _wakeUp.Notification += OnWakeUpNotification;
         }
@@ -222,24 +222,32 @@ namespace ZWaveSerialApi.Devices
             }
         }
 
-        private async void OnWakeUpNotification(object? sender, WakeUpNotificationEventArgs eventArgs)
+        private async Task OnDeviceWakeUpAsync(byte nodeId)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(_addDeviceTimeout))
+            try
             {
-                var (added, deviceState) =
-                    await AddDeviceStateIfMissingAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token).ConfigureAwait(false);
+                var cancellationTokenSource = new CancellationTokenSource(_addDeviceTimeout);
+                var (added, deviceState) = await AddDeviceStateIfMissingAsync(nodeId, cancellationTokenSource.Token).ConfigureAwait(false);
                 if (added)
                 {
                     _ = CreateDevice(deviceState!);
                 }
             }
+            catch (TransmitException transmitException)
+            {
+                _logger.Debug(transmitException, nameof(TransmitException));
+            }
+            catch (TimeoutException timeoutException)
+            {
+                _logger.Debug(timeoutException, nameof(TransmitException));
+            }
+            catch (OperationCanceledException)
+            {
+            }
 
-            var device = _devices.FirstOrDefault(device => device.NodeId == eventArgs.SourceNodeId);
+            var device = _devices.FirstOrDefault(device => device.NodeId == nodeId);
 
-            _logger.Debug(
-                "Device {DeviceNodeId} - {DeviceName} woke up.",
-                ByteToHexString(eventArgs.SourceNodeId),
-                device != null ? device.Name : "Unknown");
+            _logger.Debug("Device {DeviceNodeId} - {DeviceName} woke up.", ByteToHexString(nodeId), device != null ? device.Name : "Unknown");
 
             if (device != null)
             {
@@ -248,10 +256,27 @@ namespace ZWaveSerialApi.Devices
 
             await Task.Delay(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
 
-            using (var cancellationTokenSource = new CancellationTokenSource(_requestFromEventTimeout))
+            try
             {
-                await _wakeUp.NoMoreInformationAsync(eventArgs.SourceNodeId, cancellationTokenSource.Token).ConfigureAwait(false);
+                var cancellationTokenSource = new CancellationTokenSource(_requestFromEventTimeout);
+                await _wakeUp.NoMoreInformationAsync(nodeId, cancellationTokenSource.Token).ConfigureAwait(false);
             }
+            catch (TransmitException transmitException)
+            {
+                _logger.Debug(transmitException, nameof(TransmitException));
+            }
+            catch (TimeoutException timeoutException)
+            {
+                _logger.Debug(timeoutException, nameof(TransmitException));
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void OnWakeUpNotification(object? sender, WakeUpNotificationEventArgs eventArgs)
+        {
+            _ = Task.Run(async () => await OnDeviceWakeUpAsync(eventArgs.SourceNodeId));
         }
 
         private void PruneInvalidDeviceStates()

@@ -20,7 +20,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
         private readonly ILogger _logger;
 
         public ColorSwitchCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.ColorSwitch, client)
         {
             _logger = logger.ForContext<ColorSwitchCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -31,9 +31,11 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
             DurationType duration,
             CancellationToken cancellationToken)
         {
+            var command = ColorSwitchCommand.Set;
+
             var commandClassBytes = new List<byte>();
-            commandClassBytes.Add((byte)CommandClassType.ColorSwitch);
-            commandClassBytes.Add((byte)ColorSwitchCommand.Set);
+            commandClassBytes.Add((byte)Type);
+            commandClassBytes.Add((byte)command);
             commandClassBytes.Add(ConstructMetadataByte(colorComponents.Count));
 
             foreach (var (type, value) in colorComponents)
@@ -44,6 +46,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 
             commandClassBytes.Add((byte)duration);
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes.ToArray(), Type, command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 

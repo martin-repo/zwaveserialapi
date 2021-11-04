@@ -22,18 +22,21 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
         private readonly ConcurrentDictionary<byte, TaskCompletionSource<ConfigurationReport>> _reportCallbackSources = new();
 
         public ConfigurationCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.Configuration, client)
         {
             _logger = logger.ForContext<ConfigurationCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task<ConfigurationReport> GetAsync(byte destinationNodeId, byte parameterNumber, CancellationToken cancellationToken)
         {
+            var command = ConfigurationCommand.Get;
+
             var commandClassBytes = new byte[3];
-            commandClassBytes[0] = (byte)CommandClassType.Configuration;
-            commandClassBytes[1] = (byte)ConfigurationCommand.Get;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
             commandClassBytes[2] = parameterNumber;
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
@@ -44,14 +47,17 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
             byte[] value,
             CancellationToken cancellationToken)
         {
+            var command = ConfigurationCommand.Set;
+
             var commandClassBytes = new byte[4 + value.Length];
-            commandClassBytes[0] = (byte)CommandClassType.Configuration;
-            commandClassBytes[1] = (byte)ConfigurationCommand.Set;
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
             commandClassBytes[2] = parameterNumber;
             commandClassBytes[3] = ConstructMetadataByte(@default, (byte)value.Length);
 
             value.CopyTo(commandClassBytes, 4);
 
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 
@@ -63,6 +69,8 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
                 _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                 return;
             }
+
+            _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
 
             var parameterNumber = commandClassBytes[2];
 

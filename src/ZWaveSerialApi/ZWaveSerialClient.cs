@@ -71,7 +71,7 @@ namespace ZWaveSerialApi
             try
             {
                 (ControllerNodeId, DeviceNodeIds) = await InitializeAsync(cancellationToken).ConfigureAwait(false);
-                _logger.Debug("Serial communication initialized.");
+                _logger.Information("Serial communication initialized.");
             }
             catch
             {

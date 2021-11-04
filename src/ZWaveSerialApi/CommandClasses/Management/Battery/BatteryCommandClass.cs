@@ -15,7 +15,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.Battery
         private readonly ILogger _logger;
 
         public BatteryCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.Battery, client)
         {
             _logger = logger.ForContext<BatteryCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -28,6 +28,7 @@ namespace ZWaveSerialApi.CommandClasses.Management.Battery
             switch (command)
             {
                 case BatteryCommand.Report:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     var isLow = commandClassBytes[2] == 0xFF;
                     var value = isLow ? (byte)0 : commandClassBytes[2];
                     Report?.Invoke(this, new BatteryEventArgs(sourceNodeId, isLow, value));

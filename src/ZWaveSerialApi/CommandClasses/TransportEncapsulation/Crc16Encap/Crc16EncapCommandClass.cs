@@ -18,7 +18,7 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
         private readonly ILogger _logger;
 
         public Crc16EncapCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.Crc16Encap, client)
         {
             _logger = logger.ForContext<Crc16EncapCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -31,6 +31,8 @@ namespace ZWaveSerialApi.CommandClasses.TransportEncapsulation.Crc16Encap
                 _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
                 return;
             }
+
+            _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
 
             var calculatedChecksum = ZW_CheckCrc16(0x1D0F, commandClassBytes[..^2]);
             var checksum = EndianHelper.ToUInt16(commandClassBytes[^2..]);

@@ -13,11 +13,11 @@ namespace ZWaveSerialApi.Devices.Device
 
     public interface IMultiWhiteBulb
     {
-        Task SetColdWhiteAsync(byte value, DurationType duration, CancellationToken cancellationToken);
+        Task SetColdWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken);
 
-        Task SetIntensityAsync(byte intensity, DurationType duration, CancellationToken cancellationToken);
+        Task SetIntensityAsync(byte percentage, DurationType duration, CancellationToken cancellationToken);
 
-        Task SetWarmWhiteAsync(byte value, DurationType duration, CancellationToken cancellationToken);
+        Task SetWarmWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken);
 
         Task TurnOffAsync(DurationType duration, CancellationToken cancellationToken);
 

@@ -19,17 +19,20 @@ namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
         private readonly ConcurrentDictionary<byte, TaskCompletionSource<ZWavePlusInfoReport>> _reportCallbackSources = new();
 
         public ZWavePlusInfoCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.ZWavePlusInfo, client)
         {
             _logger = logger.ForContext<ZWavePlusInfoCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
 
         public async Task<ZWavePlusInfoReport> GetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var commandClassBytes = new byte[2];
-            commandClassBytes[0] = (byte)CommandClassType.ZWavePlusInfo;
-            commandClassBytes[1] = (byte)ZWavePlusInfoCommand.Get;
+            var command = ZWavePlusInfoCommand.Get;
 
+            var commandClassBytes = new byte[2];
+            commandClassBytes[0] = (byte)Type;
+            commandClassBytes[1] = (byte)command;
+
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
@@ -40,6 +43,8 @@ namespace ZWaveSerialApi.CommandClasses.Management.ZWavePlusInfo
             {
                 _logger.Error("Unsupported command {Command}", BitConverter.ToString(commandClassBytes, 1, 1));
             }
+
+            _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
 
             if (!_reportCallbackSources.TryRemove(sourceNodeId, out var callbackSource))
             {

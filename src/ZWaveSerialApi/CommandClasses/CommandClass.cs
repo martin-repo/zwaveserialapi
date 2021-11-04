@@ -13,10 +13,13 @@ namespace ZWaveSerialApi.CommandClasses
 
     public abstract class CommandClass
     {
-        protected CommandClass(IZWaveSerialClient client)
+        protected CommandClass(CommandClassType type, IZWaveSerialClient client)
         {
+            Type = type;
             Client = client;
         }
+
+        public CommandClassType Type { get; }
 
         protected IZWaveSerialClient Client { get; }
 
@@ -26,7 +29,9 @@ namespace ZWaveSerialApi.CommandClasses
             ConcurrentDictionary<byte, TaskCompletionSource<T>> callbackSources,
             CancellationToken cancellationToken)
         {
-            var callbackSource = callbackSources.GetOrAdd(destinationNodeId, _ => new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously));
+            var callbackSource = callbackSources.GetOrAdd(
+                destinationNodeId,
+                _ => new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously));
 
             try
             {

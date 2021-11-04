@@ -15,7 +15,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.Basic
         private readonly ILogger _logger;
 
         public BasicCommandClass(ILogger logger, IZWaveSerialClient client)
-            : base(client)
+            : base(CommandClassType.Basic, client)
         {
             _logger = logger.ForContext<BasicCommandClass>().ForContext(Constants.ClassName, GetType().Name);
         }
@@ -30,9 +30,11 @@ namespace ZWaveSerialApi.CommandClasses.Application.Basic
             switch (command)
             {
                 case BasicCommand.Set:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     Set?.Invoke(this, new BasicEventArgs(sourceNodeId, commandClassBytes[2]));
                     break;
                 case BasicCommand.Report:
+                    _logger.InboundCommand(sourceNodeId, commandClassBytes, Type, command);
                     Report?.Invoke(this, new BasicEventArgs(sourceNodeId, commandClassBytes[2]));
                     break;
                 default:

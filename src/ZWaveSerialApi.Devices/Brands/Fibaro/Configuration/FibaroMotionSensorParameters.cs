@@ -1,19 +1,19 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="AeotecMultiSensor6Parameters.cs" company="Martin Karlsson">
+// <copyright file="FibaroMotionSensorParameters.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Brands.Aeotec.Configuration
+namespace ZWaveSerialApi.Devices.Brands.Fibaro.Configuration
 {
     using ZWaveSerialApi.CommandClasses.Application.Configuration;
     using ZWaveSerialApi.Devices.Brands.Configuration;
 
-    public class AeotecMultiSensor6Parameters
+    public class FibaroMotionSensorParameters
     {
-        internal AeotecMultiSensor6Parameters(byte nodeId, ConfigurationCommandClass configuration)
+        internal FibaroMotionSensorParameters(byte nodeId, ConfigurationCommandClass configuration)
         {
-            MotionTimeout = new MotionTimeout(nodeId, 0x03, 10, 3600, configuration);
+            MotionTimeout = new MotionTimeout(nodeId, 0x06, 1, 32767, configuration);
         }
 
         public MotionTimeout MotionTimeout { get; }

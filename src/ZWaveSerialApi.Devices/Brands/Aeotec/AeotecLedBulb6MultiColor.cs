@@ -19,6 +19,7 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
 
     [DeviceName("Aeotec LED Bulb 6 MultiColor")]
     [DeviceType(0x0371, 0x0003, 0x0002)]
+    // US version:[DeviceType(0x0371, 0x0103, 0x0002)]
     public class AeotecLedBulb6MultiColor : Device, IMultiColorBulb
     {
         internal AeotecLedBulb6MultiColor(IZWaveSerialClient client, DeviceState deviceState)
@@ -26,8 +27,14 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
         {
         }
 
-        public async Task SetColdWhiteAsync(byte value, DurationType duration, CancellationToken cancellationToken)
+        public async Task SetColdWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken)
         {
+            if (percentage > 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(percentage), "percentage must be 0 to 100.");
+            }
+
+            var value = (byte)Math.Round((double)percentage / 100 * 0xFF, MidpointRounding.AwayFromZero);
             var colorComponents = new[]
                                   {
                                       new ColorComponent(ColorComponentType.WarmWhite, 0), new ColorComponent(ColorComponentType.ColdWhite, value)
@@ -52,20 +59,27 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
                         .ConfigureAwait(false);
         }
 
-        public async Task SetIntensityAsync(byte intensity, DurationType duration, CancellationToken cancellationToken)
+        public async Task SetIntensityAsync(byte percentage, DurationType duration, CancellationToken cancellationToken)
         {
-            if (intensity > 99)
+            if (percentage > 100)
             {
-                throw new ArgumentOutOfRangeException(nameof(intensity), "Intensity must be between 0 and 99 (inclusive).");
+                throw new ArgumentOutOfRangeException(nameof(percentage), "percentage must be 0 to 100.");
             }
 
+            var value = (byte)Math.Round((double)percentage / 100 * 99, MidpointRounding.AwayFromZero);
             await Client.GetCommandClass<MultilevelSwitchCommandClass>()
-                        .SetAsync(NodeId, intensity, duration, cancellationToken)
+                        .SetAsync(NodeId, value, duration, cancellationToken)
                         .ConfigureAwait(false);
         }
 
-        public async Task SetWarmWhiteAsync(byte value, DurationType duration, CancellationToken cancellationToken)
+        public async Task SetWarmWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken)
         {
+            if (percentage > 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(percentage), "percentage must be 0 to 100.");
+            }
+
+            var value = (byte)Math.Round((double)percentage / 100 * 0xFF, MidpointRounding.AwayFromZero);
             var colorComponents = new[] { new ColorComponent(ColorComponentType.WarmWhite, value) };
             await Client.GetCommandClass<ColorSwitchCommandClass>()
                         .SetAsync(NodeId, colorComponents, duration, cancellationToken)
