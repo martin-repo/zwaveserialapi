@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>1.0.0-rc4</Version>
+    <Version>1.0.0-rc5</Version>
     <Authors>martin-repo</Authors>
     <Description>Provides classes for controlling Z-Wave network devices via a USB-stick.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
