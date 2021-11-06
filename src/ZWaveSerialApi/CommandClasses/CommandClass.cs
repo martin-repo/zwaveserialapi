@@ -40,7 +40,7 @@ namespace ZWaveSerialApi.CommandClasses
                 if (await Task.WhenAny(callbackSource.Task, Task.Delay(Client.CallbackTimeout, cancellationToken)).ConfigureAwait(false)
                     == callbackSource.Task)
                 {
-                    return callbackSource.Task.Result;
+                    return await callbackSource.Task;
                 }
 
                 throw new TimeoutException("Timeout waiting for response.");

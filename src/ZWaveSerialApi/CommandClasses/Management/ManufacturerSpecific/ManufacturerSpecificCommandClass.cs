@@ -28,13 +28,13 @@ namespace ZWaveSerialApi.CommandClasses.Management.ManufacturerSpecific
 
         public async Task<ManufacturerSpecificReport> GetAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
-            var command = ManufacturerSpecificCommand.Get;
+            const ManufacturerSpecificCommand Command = ManufacturerSpecificCommand.Get;
 
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 

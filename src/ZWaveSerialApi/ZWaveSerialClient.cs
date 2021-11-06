@@ -113,7 +113,7 @@ namespace ZWaveSerialApi
             return _commandClasses[type];
         }
 
-        public async Task<GetNodeProtocolInfoResponse> GetNodeProtocolInfo(byte destinationNodeId, CancellationToken cancellationToken)
+        public async Task<GetNodeProtocolInfoResponse> GetNodeProtocolInfoAsync(byte destinationNodeId, CancellationToken cancellationToken)
         {
             var result = (GetNodeProtocolInfoRx)await InvokeValueFunctionAsync(GetNodeProtocolInfoTx.Create(destinationNodeId), cancellationToken)
                                                     .ConfigureAwait(false);
@@ -323,7 +323,7 @@ namespace ZWaveSerialApi
                     throw new TimeoutException("Timeout waiting for function transmit response.");
                 }
 
-                return callbackSource.Task.Result;
+                return await callbackSource.Task;
             }
             finally
             {
@@ -364,7 +364,7 @@ namespace ZWaveSerialApi
                     throw new TimeoutException("Timeout waiting for callback.");
                 }
 
-                var callbackValue = callbackSource.Task.GetAwaiter().GetResult();
+                var callbackValue = await callbackSource.Task;
                 return callbackValue;
             }
             finally
@@ -407,7 +407,12 @@ namespace ZWaveSerialApi
             {
                 case FunctionType.ApplicationCommandHandlerBridge:
                     var applicationCommand = new ApplicationCommandHandlerBridgeRx(frame.SerialCommandBytes);
-                    Task.Run(() => ProcessApplicationCommand(applicationCommand));
+                    _ = Task.Run(() => ProcessApplicationCommand(applicationCommand))
+                            .ContinueWith(
+                                failedTask => _logger.Error(failedTask.Exception, nameof(ProcessApplicationCommand)),
+                                CancellationToken.None,
+                                TaskContinuationOptions.OnlyOnFaulted,
+                                TaskScheduler.Default);
                     break;
             }
         }

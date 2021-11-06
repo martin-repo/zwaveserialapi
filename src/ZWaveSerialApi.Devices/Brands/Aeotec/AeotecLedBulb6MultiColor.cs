@@ -27,6 +27,18 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
         {
         }
 
+        public async Task<byte> GetIntensityAsync(CancellationToken cancellationToken)
+        {
+            var report = await Client.GetCommandClass<MultilevelSwitchCommandClass>().GetAsync(NodeId, cancellationToken).ConfigureAwait(false);
+            if (report.Value > 99)
+            {
+                return 100;
+            }
+
+            var percentage = (byte)Math.Round(report.Value / 99f * 100, MidpointRounding.AwayFromZero);
+            return percentage;
+        }
+
         public async Task SetColdWhiteAsync(byte percentage, DurationType duration, CancellationToken cancellationToken)
         {
             if (percentage > 100)

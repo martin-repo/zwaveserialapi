@@ -31,11 +31,11 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
             DurationType duration,
             CancellationToken cancellationToken)
         {
-            var command = ColorSwitchCommand.Set;
+            const ColorSwitchCommand Command = ColorSwitchCommand.Set;
 
             var commandClassBytes = new List<byte>();
             commandClassBytes.Add((byte)Type);
-            commandClassBytes.Add((byte)command);
+            commandClassBytes.Add((byte)Command);
             commandClassBytes.Add(ConstructMetadataByte(colorComponents.Count));
 
             foreach (var (type, value) in colorComponents)
@@ -46,7 +46,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.ColorSwitch
 
             commandClassBytes.Add((byte)duration);
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes.ToArray(), Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes.ToArray(), Type, Command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 

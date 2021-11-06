@@ -136,14 +136,15 @@ namespace DeveloperTest
             await network.ConnectAsync();
 
             var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
-            multiSensor.WakeUpNotification += (_, _) =>
+            multiSensor.WakeUpNotification += async (_, _) =>
             {
-                // ... regular processing when device wakes up ...
+                // ... processing every time device wakes up ...
             };
 
-            async void MultiSensorSetupAsync(object? sender, EventArgs eventArgs)
+            async Task MultiSensorSetupAsync(object? sender, EventArgs eventArgs)
             {
                 // ... one-time setup of device when it wakes up ...
+
                 multiSensor.WakeUpNotification -= MultiSensorSetupAsync;
             }
 

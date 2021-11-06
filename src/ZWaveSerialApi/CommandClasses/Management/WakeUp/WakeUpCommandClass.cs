@@ -36,56 +36,56 @@ namespace ZWaveSerialApi.CommandClasses.Management.WakeUp
             byte destinationNodeId,
             CancellationToken cancellationToken = default)
         {
-            var command = WakeUpCommand.IntervalCapabilitiesGet;
+            const WakeUpCommand Command = WakeUpCommand.IntervalCapabilitiesGet;
 
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalCapabilitiesReportCallbackSources, cancellationToken)
                        .ConfigureAwait(false);
         }
 
         public async Task<TimeSpan> IntervalGetAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
         {
-            var command = WakeUpCommand.IntervalGet;
+            const WakeUpCommand Command = WakeUpCommand.IntervalGet;
 
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _intervalReportCallbackSources, cancellationToken)
                        .ConfigureAwait(false);
         }
 
         public async Task IntervalSetAsync(byte destinationNodeId, TimeSpan interval, CancellationToken cancellationToken = default)
         {
-            var command = WakeUpCommand.IntervalSet;
+            const WakeUpCommand Command = WakeUpCommand.IntervalSet;
 
             var commandClassBytes = new byte[6];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
 
             EndianHelper.GetBytes((int)interval.TotalSeconds, 3).CopyTo(commandClassBytes, 2);
 
             commandClassBytes[5] = Client.ControllerNodeId;
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task NoMoreInformationAsync(byte destinationNodeId, CancellationToken cancellationToken = default)
         {
-            var command = WakeUpCommand.NoMoreInformation;
+            const WakeUpCommand Command = WakeUpCommand.NoMoreInformation;
 
             var commandClassBytes = new byte[2];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
 
             // Only use TransmitOption.Ack since node is known after having sent wake up notification.
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes, TransmitOption.Ack, cancellationToken).ConfigureAwait(false);
         }
 

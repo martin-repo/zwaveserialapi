@@ -10,6 +10,8 @@ namespace ZWaveSerialApi.Devices.Device
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Microsoft.VisualStudio.Threading;
+
     using ZWaveSerialApi.CommandClasses.Management.WakeUp;
 
     public abstract class WakeUpDevice : Device
@@ -22,7 +24,7 @@ namespace ZWaveSerialApi.Devices.Device
             _wakeUp = Client.GetCommandClass<WakeUpCommandClass>();
         }
 
-        public event EventHandler? WakeUpNotification;
+        public event AsyncEventHandler? WakeUpNotification;
 
         public bool IsAwake { get; internal set; }
 
@@ -44,23 +46,18 @@ namespace ZWaveSerialApi.Devices.Device
             await _wakeUp.IntervalSetAsync(NodeId, interval, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task WakeUpNoMoreInformationAsync(CancellationToken cancellationToken = default)
-        {
-            AssertAwake();
-            await _wakeUp.NoMoreInformationAsync(NodeId, cancellationToken).ConfigureAwait(false);
-        }
-
         internal void AssertAwake()
         {
             if (!IsAwake && !IsAlwaysOn)
             {
-                throw new InvalidOperationException("Device is not awake.");
+                throw new InvalidOperationException(
+                    $"Cannot communicate with device ({nameof(IsAwake)}={IsAwake} {nameof(IsAlwaysOn)}={IsAlwaysOn}).");
             }
         }
 
-        internal void OnWakeUpNotification()
+        internal async Task OnWakeUpNotificationAsync()
         {
-            WakeUpNotification?.Invoke(this, EventArgs.Empty);
+            await (WakeUpNotification?.InvokeAsync(this, EventArgs.Empty) ?? Task.CompletedTask);
         }
     }
 }

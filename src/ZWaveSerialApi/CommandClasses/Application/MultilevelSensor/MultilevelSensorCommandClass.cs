@@ -35,7 +35,7 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
             CancellationToken cancellationToken)
             where T : Enum
         {
-            var command = MultilevelSensorCommand.Get;
+            const MultilevelSensorCommand Command = MultilevelSensorCommand.Get;
 
             var expectedScaleEnumType = AttributeHelper.GetScaleEnumType(sensorType);
             if (expectedScaleEnumType != scale.GetType())
@@ -47,11 +47,11 @@ namespace ZWaveSerialApi.CommandClasses.Application.MultilevelSensor
 
             var commandClassBytes = new byte[4];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
             commandClassBytes[2] = (byte)sensorType;
             commandClassBytes[3] = ConstructMetadataByte(0, scaleValue, 0);
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command, sensorType);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command, sensorType);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 

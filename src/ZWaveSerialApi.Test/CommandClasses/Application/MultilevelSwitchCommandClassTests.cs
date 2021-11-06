@@ -7,6 +7,7 @@
 namespace ZWaveSerialApi.Test.CommandClasses.Application
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -24,6 +25,49 @@ namespace ZWaveSerialApi.Test.CommandClasses.Application
         private Mock<IZWaveSerialClient> _clientMock;
 
         private MultilevelSwitchCommandClass _multilevelSwitchCommandClass;
+
+        [TestCase(1, "26-03-00", 0)]
+        [TestCase(1, "26-03-01", 1)]
+        [TestCase(1, "26-03-32", 50)]
+        [TestCase(1, "26-03-63", 99)]
+        [TestCase(1, "26-03-64", 100)]
+        [TestCase(1, "26-03-FE", 254)]
+        [TestCase(1, "26-03-FF", 255)]
+        public void GetAsync_ShouldProcessData(byte destinationNodeId, string bytesString, int expectedValue)
+        {
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
+
+            var bytes = bytesString.Split('-').Select(byteString => Convert.ToByte(byteString, 16)).ToArray();
+
+            var reportTask = _multilevelSwitchCommandClass.GetAsync(destinationNodeId, CancellationToken.None);
+            _multilevelSwitchCommandClass.ProcessCommandClassBytes(destinationNodeId, bytes);
+            var report = reportTask.GetAwaiter().GetResult();
+
+            Assert.That(report.Value, Is.EqualTo(expectedValue));
+        }
+
+        [TestCase(1, "26-02")]
+        public void GetAsync_ShouldSendData(byte destinationNodeId, string expectedBytesString)
+        {
+            _clientMock.SetupGet(mock => mock.CallbackTimeout).Returns(TimeSpan.FromMilliseconds(10));
+
+            var bytesString = string.Empty;
+            _clientMock.Setup(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
+                       .Callback<byte, byte[], CancellationToken>((_, frameBytes, _) => bytesString = BitConverter.ToString(frameBytes))
+                       .Returns(Task.FromResult(true));
+
+            try
+            {
+                _multilevelSwitchCommandClass.GetAsync(destinationNodeId, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            catch (TimeoutException timeoutException) when (timeoutException.Message == "Timeout waiting for response.")
+            {
+            }
+
+            _clientMock.Verify(mock => mock.SendDataAsync(destinationNodeId, It.IsAny<byte[]>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            Assert.That(bytesString, Is.EqualTo(expectedBytesString));
+        }
 
         [TestCase(1, 10, true, "26-01-0A-FF")]
         [TestCase(1, 80, true, "26-01-50-FF")]

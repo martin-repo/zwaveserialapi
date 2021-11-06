@@ -29,14 +29,14 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
 
         public async Task<ConfigurationReport> GetAsync(byte destinationNodeId, byte parameterNumber, CancellationToken cancellationToken)
         {
-            var command = ConfigurationCommand.Get;
+            const ConfigurationCommand Command = ConfigurationCommand.Get;
 
             var commandClassBytes = new byte[3];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
             commandClassBytes[2] = parameterNumber;
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             return await WaitForResponseAsync(destinationNodeId, commandClassBytes, _reportCallbackSources, cancellationToken).ConfigureAwait(false);
         }
 
@@ -47,17 +47,17 @@ namespace ZWaveSerialApi.CommandClasses.Application.Configuration
             byte[] value,
             CancellationToken cancellationToken)
         {
-            var command = ConfigurationCommand.Set;
+            const ConfigurationCommand Command = ConfigurationCommand.Set;
 
             var commandClassBytes = new byte[4 + value.Length];
             commandClassBytes[0] = (byte)Type;
-            commandClassBytes[1] = (byte)command;
+            commandClassBytes[1] = (byte)Command;
             commandClassBytes[2] = parameterNumber;
             commandClassBytes[3] = ConstructMetadataByte(@default, (byte)value.Length);
 
             value.CopyTo(commandClassBytes, 4);
 
-            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, command);
+            _logger.OutboundCommand(destinationNodeId, commandClassBytes, Type, Command);
             await Client.SendDataAsync(destinationNodeId, commandClassBytes.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 

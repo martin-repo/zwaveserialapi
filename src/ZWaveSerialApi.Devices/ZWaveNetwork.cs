@@ -252,7 +252,7 @@ namespace ZWaveSerialApi.Devices
                 wakeUpDevice.IsAwake = true;
                 try
                 {
-                    wakeUpDevice.OnWakeUpNotification();
+                    await wakeUpDevice.OnWakeUpNotificationAsync();
                 }
                 finally
                 {
@@ -282,7 +282,12 @@ namespace ZWaveSerialApi.Devices
 
         private void OnWakeUpNotification(object? sender, WakeUpNotificationEventArgs eventArgs)
         {
-            _ = Task.Run(async () => await OnDeviceWakeUpAsync(eventArgs.SourceNodeId));
+            _ = Task.Run(async () => await OnDeviceWakeUpAsync(eventArgs.SourceNodeId))
+                    .ContinueWith(
+                        failedTask => _logger.Error(failedTask.Exception, nameof(OnDeviceWakeUpAsync)),
+                        CancellationToken.None,
+                        TaskContinuationOptions.OnlyOnFaulted,
+                        TaskScheduler.Default);
         }
 
         private void PruneInvalidDeviceStates()
@@ -325,7 +330,7 @@ namespace ZWaveSerialApi.Devices
                 var report = await manufacturerSpecificCommandClass.GetAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
                 var deviceType = new DeviceType(report.ManufacturerId, report.ProductTypeId, report.ProductId);
 
-                var nodeProtocolInfo = await _client.GetNodeProtocolInfo(deviceNodeId, cancellationToken).ConfigureAwait(false);
+                var nodeProtocolInfo = await _client.GetNodeProtocolInfoAsync(deviceNodeId, cancellationToken).ConfigureAwait(false);
                 var isListening = nodeProtocolInfo.Listening;
 
                 var isAlwaysOn = false;
