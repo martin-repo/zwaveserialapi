@@ -1,17 +1,12 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IMotionSensor.cs" company="Martin Karlsson">
+// <copyright file="AddDeviceResult.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Device
+namespace ZWaveSerialApi.Devices
 {
-    using System;
+    using ZWaveSerialApi.Devices.Device;
 
-    public interface IMotionSensor : IDevice
-    {
-        event EventHandler? MotionDetected;
-
-        event EventHandler? MotionIdle;
-    }
+    public record AddDeviceResult(bool Success, IDevice? Device);
 }

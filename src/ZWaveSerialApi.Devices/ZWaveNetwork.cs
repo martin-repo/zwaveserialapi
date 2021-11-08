@@ -52,6 +52,67 @@ namespace ZWaveSerialApi.Devices
         {
         }
 
+        public async Task<AddDeviceResult> AddDeviceAsync(
+            Action? controllerReadyCallback = null,
+            Func<WakeUpDevice, Task>? wakeUpInitializationFunc = null,
+            CancellationToken cancellationToken = default)
+        {
+            var listeningNodesCount = (byte)_devices.Count(device => device.IsListening);
+
+            _client.ReconnectOnFailure = false;
+            try
+            {
+                var result = await _client.AddNodeToNetworkAsync(listeningNodesCount, controllerReadyCallback, cancellationToken)
+                                          .ConfigureAwait(false);
+                if (!result.Success)
+                {
+                    // Node added, but with errors
+                    _logger.Debug("Node was added but with errors.");
+                }
+
+                var (added, deviceState) = await AddDeviceStateIfMissingAsync(result.NodeId, cancellationToken).ConfigureAwait(false);
+                if (!added || deviceState == null)
+                {
+                    return new AddDeviceResult(false, null);
+                }
+
+                // BASIC_TYPE_* @ ZW_classcmd.h
+                const byte BasicTypeRoutingSlave = 0x04;
+                if (deviceState.DeviceClass.Basic == BasicTypeRoutingSlave)
+                {
+                    // TODO:
+                    // DeleteSucReturnRoute 01 05 00 55 15 08 B2
+                    // AssignSucReturnRoute 01 06 00 51 15 09 09 BD
+                    // Association CC 01 0B 00 13 15 04 85 01 01 01 25 0B 5C
+                }
+
+                var device = CreateDevice(deviceState);
+                if (device is WakeUpDevice wakeUpDevice)
+                {
+                    wakeUpDevice.IsAwake = true;
+                    try
+                    {
+                        if (wakeUpInitializationFunc != null)
+                        {
+                            await wakeUpInitializationFunc(wakeUpDevice).ConfigureAwait(false);
+                        }
+
+                        await _wakeUp.NoMoreInformationAsync(wakeUpDevice.NodeId, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        wakeUpDevice.IsAwake = false;
+                    }
+                }
+
+                return new AddDeviceResult(true, device);
+            }
+            finally
+            {
+                _client.ReconnectOnFailure = true;
+            }
+        }
+
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
             await _client.ConnectAsync(cancellationToken).ConfigureAwait(false);
@@ -136,6 +197,32 @@ namespace ZWaveSerialApi.Devices
             if (_deviceFactory.CanCreate(deviceType))
             {
                 _logger.Warning("Supported device registered as custom type. {DeviceType}", deviceType);
+            }
+        }
+
+        public async Task RemoveDeviceAsync(Action? controllerReadyCallback = null, CancellationToken cancellationToken = default)
+        {
+            var result = await _client.RemoveNodeFromNetworkAsync(controllerReadyCallback, cancellationToken).ConfigureAwait(false);
+            if (!result.Success)
+            {
+                // TODO: Check if result.NodeId is still in list, and if so call this method again
+                _logger.Debug("Errors during removal. Please check if node was removed.");
+            }
+
+            if (_nodeIdDeviceStates.ContainsKey(result.NodeId))
+            {
+                _nodeIdDeviceStates.Remove(result.NodeId);
+            }
+
+            if (_unsupportedDeviceTypes.ContainsKey(result.NodeId))
+            {
+                _unsupportedDeviceTypes.Remove(result.NodeId);
+            }
+
+            var device = _devices.FirstOrDefault(device => device.NodeId == result.NodeId);
+            if (device != null)
+            {
+                _devices.Remove(device);
             }
         }
 

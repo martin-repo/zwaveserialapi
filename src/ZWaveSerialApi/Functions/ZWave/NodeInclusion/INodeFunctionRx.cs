@@ -1,17 +1,15 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IMotionSensor.cs" company="Martin Karlsson">
+// <copyright file="INodeFunctionRx.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Device
+namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
 {
-    using System;
-
-    public interface IMotionSensor : IDevice
+    internal interface INodeFunctionRx : IFunctionRx
     {
-        event EventHandler? MotionDetected;
+        byte SourceNodeId { get; }
 
-        event EventHandler? MotionIdle;
+        NodeStatus Status { get; }
     }
 }

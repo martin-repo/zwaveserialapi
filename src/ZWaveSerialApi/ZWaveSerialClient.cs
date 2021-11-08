@@ -29,6 +29,9 @@ namespace ZWaveSerialApi
     using ZWaveSerialApi.Functions;
     using ZWaveSerialApi.Functions.SerialApi;
     using ZWaveSerialApi.Functions.ZWave;
+    using ZWaveSerialApi.Functions.ZWave.NodeInclusion;
+    using ZWaveSerialApi.Functions.ZWave.NodeInclusion.AddNodeToNetwork;
+    using ZWaveSerialApi.Functions.ZWave.NodeInclusion.RemoveNodeFromNetwork;
     using ZWaveSerialApi.Functions.ZWave.RequestNodeInfo;
     using ZWaveSerialApi.Functions.ZWave.SendData;
     using ZWaveSerialApi.Functions.ZWave.TypeLibrary;
@@ -63,7 +66,36 @@ namespace ZWaveSerialApi
 
         public bool IsConnected => _port.IsConnected;
 
-        public bool ReconnectOnFailure => _port.ReconnectOnFailure;
+        public bool ReconnectOnFailure
+        {
+            get => _port.ReconnectOnFailure;
+            set => _port.ReconnectOnFailure = value;
+        }
+
+        public async Task<AddNodeToNetworkResponse> AddNodeToNetworkAsync(
+            byte listeningNodeCount,
+            Action? controllerReadyCallback = null,
+            CancellationToken abortRequestedToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var callbackFuncId = GetNextCallbackFuncId();
+
+            var addNodeSequence = new AddNodeSequence(
+                _logger,
+                listeningNodeCount,
+                this,
+                _port,
+                callbackFuncId,
+                controllerReadyCallback);
+            var (success, nodeFunctionRx) = await addNodeSequence.ExecuteAsync(abortRequestedToken, cancellationToken).ConfigureAwait(false);
+
+            var addNodeToNetworkRx = (AddNodeToNetworkRx)nodeFunctionRx;
+            return new AddNodeToNetworkResponse(
+                success,
+                addNodeToNetworkRx.SourceNodeId,
+                addNodeToNetworkRx.DeviceClass,
+                addNodeToNetworkRx.CommandClasses);
+        }
 
         public async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
@@ -130,6 +162,27 @@ namespace ZWaveSerialApi
         {
             var result = (MemoryGetIdRx)await InvokeValueFunctionAsync(MemoryGetIdTx.Create(), cancellationToken).ConfigureAwait(false);
             return new MemoryGetIdResponse(result.HomeId, result.NodeId);
+        }
+
+        public async Task<RemoveNodeFromNetworkResponse> RemoveNodeFromNetworkAsync(
+            Action? controllerReadyCallback = null,
+            CancellationToken abortRequestedToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            var callbackFuncId = GetNextCallbackFuncId();
+
+            var removeNodeSequence = new RemoveNodeSequence(_logger, this, _port, callbackFuncId, controllerReadyCallback);
+
+            try
+            {
+                var (success, nodeFunctionRx) = await removeNodeSequence.ExecuteAsync(abortRequestedToken, cancellationToken).ConfigureAwait(false);
+                var removeNodeFromNetworkRx = (RemoveNodeFromNetworkRx)nodeFunctionRx;
+                return new RemoveNodeFromNetworkResponse(success, removeNodeFromNetworkRx.SourceNodeId);
+            }
+            catch (NodeTimeoutException nodeTimeoutException) when (nodeTimeoutException.NodeTimeout == NodeTimeout.AddNodeTimeout)
+            {
+                return new RemoveNodeFromNetworkResponse(false, nodeTimeoutException.NodeId);
+            }
         }
 
         public async Task<NodeInfo> RequestNodeInfoAsync(byte destinationNodeId, CancellationToken cancellationToken = default)

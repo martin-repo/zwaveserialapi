@@ -12,7 +12,7 @@ namespace ZWaveSerialApi.Devices.Device
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
 
-    public interface ITemperatureSensor
+    public interface ITemperatureSensor : IDevice
     {
         event EventHandler<MultilevelSensorReportEventArgs>? TemperatureReport;
 

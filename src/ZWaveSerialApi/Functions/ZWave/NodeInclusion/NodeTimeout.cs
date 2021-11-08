@@ -1,17 +1,15 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IMotionSensor.cs" company="Martin Karlsson">
+// <copyright file="NodeTimeout.cs" company="Martin Karlsson">
 //   Copyright (c) Martin Karlsson. All rights reserved.
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace ZWaveSerialApi.Devices.Device
+namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
 {
-    using System;
-
-    public interface IMotionSensor : IDevice
+    internal enum NodeTimeout
     {
-        event EventHandler? MotionDetected;
-
-        event EventHandler? MotionIdle;
+        ProtocolReadyTimeout,
+        AddNodeTimeout,
+        NodeTimeout
     }
 }

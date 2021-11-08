@@ -1,0 +1,1 @@
+type README_header.md .\src\ZWaveSerialApi.Devices\README.md > README.md

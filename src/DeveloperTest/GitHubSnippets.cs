@@ -36,6 +36,18 @@ namespace DeveloperTest
             var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
         }
 
+        public async Task ExcludeDevice()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            // Remove/exclude device
+            await network.RemoveDeviceAsync();
+
+            // Remove/exclude device (optional callback when controller is ready)
+            await network.RemoveDeviceAsync(() => Console.WriteLine("Initiate exclusion on device (ie. press button according to manual."));
+        }
+
         public async Task GettingStarted()
         {
             using var network = new ZWaveNetwork("COM3");
@@ -61,6 +73,32 @@ namespace DeveloperTest
             Console.WriteLine($"Humidity: {humidity.Value}{humidity.Unit}");
 
             Console.ReadKey();
+        }
+
+        public async Task IncludeDevice()
+        {
+            using var network = new ZWaveNetwork("COM3");
+            await network.ConnectAsync();
+
+            // Add/include device
+            var (success, device) = await network.AddDeviceAsync();
+
+            // Add/include device (optional callback when controller is ready)
+            (success, device) = await network.AddDeviceAsync(
+                                    () => Console.WriteLine("Initiate inclusion on device (ie. press button according to manual."));
+
+            // Add/include device (optional initialization for wake-up devices)
+            (success, device) = await network.AddDeviceAsync(
+                                    () => Console.WriteLine("Initiate inclusion on device (ie. press button according to manual."),
+                                    async wakeUpDevice =>
+                                    {
+                                        const int IntervalHours = 2;
+                                        var wakeUpCapabilities = await wakeUpDevice.GetWakeUpIntervalCapabilitiesAsync();
+                                        var intervalSeconds = TimeSpan.FromHours(IntervalHours).TotalSeconds
+                                                              - TimeSpan.FromHours(IntervalHours).TotalSeconds
+                                                              % wakeUpCapabilities.IntervalStep.TotalSeconds;
+                                        await wakeUpDevice.SetWakeUpIntervalAsync(TimeSpan.FromSeconds(intervalSeconds));
+                                    });
         }
 
         public async Task Location()

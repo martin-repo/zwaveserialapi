@@ -1,22 +1,57 @@
 [![Build status](https://dev.azure.com/martin-repo/ZWaveSerialApi/_apis/build/status/ZWaveSerialApi)](https://dev.azure.com/martin-repo/ZWaveSerialApi/_build/latest?definitionId=1)
 [![Nuget](https://img.shields.io/nuget/vpre/ZWaveSerialApi.Devices?logo=nuget)](https://www.nuget.org/packages/ZWaveSerialApi.Devices)
 
+## Install
+
+Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices) from NuGet.org
+
 # C# Z-Wave Serial API
 
 This API is for C#/.NET developers who want to create their own home automation tool using a Z-Wave USB stick, such as the [Aeotec Z-Stick 7](https://aeotec.com/z-wave-usb-stick/z-stick-7.html).
 
 Since this API doesn't support Z-Wave protocol security (S0 or S2) it should not be used for burglar alarms, door locks, etc.
 
-## Install
-
-Install [`ZWaveSerialApi.Devices`](https://www.nuget.org/packages/ZWaveSerialApi.Devices) from NuGet.org
-
 ## Requirements
 - .NET 5.0
-- Devices should already be included/added to the network. Use any other software for this purpose, eg. [Z-Wave PC Controller](https://www.silabs.com/developers/simplicity-studio) (part of Simplicity Studio).
 
 ## Examples
 
+### Adding (including) devices
+```cs
+using var network = new ZWaveNetwork("COM3");
+await network.ConnectAsync();
+
+// Add/include device
+var (success, device) = await network.AddDeviceAsync();
+
+// Add/include device (optional callback when controller is ready)
+(success, device) = await network.AddDeviceAsync(
+                        () => Console.WriteLine("Initiate inclusion on device (ie. press button according to manual."));
+
+// Add/include device (optional initialization for wake-up devices)
+(success, device) = await network.AddDeviceAsync(
+                        () => Console.WriteLine("Initiate inclusion on device (ie. press button according to manual."),
+                        async wakeUpDevice =>
+                        {
+                            const int IntervalHours = 2;
+                            var wakeUpCapabilities = await wakeUpDevice.GetWakeUpIntervalCapabilitiesAsync();
+                            var intervalSeconds = TimeSpan.FromHours(IntervalHours).TotalSeconds
+                                                  - TimeSpan.FromHours(IntervalHours).TotalSeconds
+                                                  % wakeUpCapabilities.IntervalStep.TotalSeconds;
+                            await wakeUpDevice.SetWakeUpIntervalAsync(TimeSpan.FromSeconds(intervalSeconds));
+                        });
+```
+### Removing (excluding) devices
+```cs
+using var network = new ZWaveNetwork("COM3");
+await network.ConnectAsync();
+
+// Remove/exclude device
+await network.RemoveDeviceAsync();
+
+// Remove/exclude device (optional callback when controller is ready)
+await network.RemoveDeviceAsync(() => Console.WriteLine("Initiate exclusion on device (ie. press button according to manual."));
+```
 ### Getting started
 ```cs
 using var network = new ZWaveNetwork("COM3");
@@ -24,12 +59,12 @@ await network.ConnectAsync();
 
 var multiSensor = network.GetDevices<AeotecMultiSensor6>().First();
 
-// Register for unsolicited home security notifications
-multiSensor.HomeSecurityMotionDetected += (_, _) =>
+// Register for unsolicited motion notifications
+multiSensor.MotionDetected += (_, _) =>
 {
     /* Motion detection started */
 };
-multiSensor.HomeSecurityIdle += (_, _) =>
+multiSensor.MotionIdle += (_, _) =>
 {
     /* Motion detection stopped */
 };
@@ -40,8 +75,6 @@ Console.WriteLine($"Temperature: {temperature.Value}{temperature.Unit}");
 
 var humidity = await multiSensor.GetHumidityAsync(HumidityScale.Percentage);
 Console.WriteLine($"Humidity: {humidity.Value}{humidity.Unit}");
-
-Console.ReadKey();
 ```
 ### Network settings persistance
 When connecting, the API will attempt to query all unknown devices. Devices that are sleeping will be added when they wake up.
@@ -131,16 +164,15 @@ using var network = new ZWaveNetwork("COM3");
 // 2) Get the data from a device already on the network, eg.:
 var customDeviceType = network.GetUnsupportedDeviceTypes().First();
 
-network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultiSensor6(client, deviceState));
+network.RegisterCustomDeviceType(customDeviceType, (client, deviceState) => new CustomMultilevelSensor(client, deviceState));
 
 await network.ConnectAsync();
 
-var multiSensor = network.GetDevices<CustomMultiSensor6>().First();
+var multiSensor = network.GetDevices<CustomMultilevelSensor>().First();
 var temperature = await multiSensor.GetTemperatureAsync(TemperatureScale.Celsius);
 ```
 ## Features not supported
 - Z-Wave security (ie. S0 and S2 classed communication with nodes)
-- Multi channel communication
+- MultiChannel/MultiCast
 - Association groups (device signalling other device, bypassing controller)
 - Scenes
-- Inclusion/exclusion of devices

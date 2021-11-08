@@ -12,7 +12,7 @@ namespace ZWaveSerialApi.Devices.Device
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
 
-    public interface IHumiditySensor
+    public interface IHumiditySensor : IDevice
     {
         event EventHandler<MultilevelSensorReportEventArgs>? HumidityReport;
 

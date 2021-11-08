@@ -11,7 +11,7 @@ namespace ZWaveSerialApi.Devices.Device
 
     using ZWaveSerialApi.CommandClasses.Application;
 
-    public interface IMultiWhiteBulb
+    public interface IMultiWhiteBulb : IDevice
     {
         Task<byte> GetIntensityAsync(CancellationToken cancellationToken);
 

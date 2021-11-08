@@ -51,12 +51,6 @@ namespace ZWaveSerialApi.Devices.Brands.Aeotec
             return await _multilevelSensor.GetAsync(NodeId, MultilevelSensorType.Humidity, scale, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<TimeSpan> GetMotionTimeoutAsync(CancellationToken cancellationToken = default)
-        {
-            AssertAwake();
-            return await Parameters.MotionTimeout.GetAsync(cancellationToken);
-        }
-
         public async Task<MultilevelSensorReport> GetTemperatureAsync(TemperatureScale scale, CancellationToken cancellationToken = default)
         {
             AssertAwake();
