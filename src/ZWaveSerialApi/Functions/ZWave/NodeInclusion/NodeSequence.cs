@@ -50,10 +50,11 @@ namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
         }
 
         public async Task<(bool Success, INodeFunctionRx NodeFunctionRx)> ExecuteAsync(
-            CancellationToken abortRequestedToken,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            CancellationToken abortRequestedToken)
+
         {
-            var abortTokenSource = CancellationTokenSource.CreateLinkedTokenSource(abortRequestedToken, cancellationToken);
+            var abortTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, abortRequestedToken);
             var abortToken = abortTokenSource.Token;
 
             await StopPreviousSessionAsync(abortToken).ConfigureAwait(false);
@@ -66,7 +67,7 @@ namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
             {
                 var started = DateTime.UtcNow;
                 var protocolReadyTimeout = started.Add(nodeTimeouts.LearnReadyTimeout);
-                await WaitForProtocolAsync(protocolReadyTimeout, abortRequestedToken, cancellationToken).ConfigureAwait(false);
+                await WaitForProtocolAsync(protocolReadyTimeout, cancellationToken, abortRequestedToken).ConfigureAwait(false);
 
                 if (_controllerReadyCallback != null)
                 {
@@ -75,7 +76,7 @@ namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
                 }
 
                 var nodeWaitTimeout = started.Add(nodeTimeouts.NodeFoundTimeout);
-                await WaitForNodeAsync(nodeWaitTimeout, abortRequestedToken, cancellationToken).ConfigureAwait(false);
+                await WaitForNodeAsync(nodeWaitTimeout, cancellationToken, abortRequestedToken).ConfigureAwait(false);
 
                 // NOTE! User cannot abort beyond this point
                 abortTokenSource.Dispose();
@@ -216,9 +217,9 @@ namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
                 NodeTimeout.AddNodeTimeout);
         }
 
-        private async Task WaitForNodeAsync(DateTime timeout, CancellationToken abortRequestedToken, CancellationToken cancellationToken)
+        private async Task WaitForNodeAsync(DateTime timeout, CancellationToken cancellationToken, CancellationToken abortRequestedToken)
         {
-            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(abortRequestedToken, cancellationToken);
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, abortRequestedToken);
             try
             {
                 _logger.Debug("Awaiting node");
@@ -281,9 +282,9 @@ namespace ZWaveSerialApi.Functions.ZWave.NodeInclusion
                 NodeTimeout.NodeTimeout);
         }
 
-        private async Task WaitForProtocolAsync(DateTime timeout, CancellationToken abortRequestedToken, CancellationToken cancellationToken)
+        private async Task WaitForProtocolAsync(DateTime timeout, CancellationToken cancellationToken, CancellationToken abortRequestedToken)
         {
-            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(abortRequestedToken, cancellationToken);
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, abortRequestedToken);
             try
             {
                 _logger.Debug("Requesting learn mode");

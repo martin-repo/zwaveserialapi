@@ -8,6 +8,7 @@ namespace DeveloperTest
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using ZWaveSerialApi.CommandClasses.Application.MultilevelSensor;
@@ -46,6 +47,13 @@ namespace DeveloperTest
 
             // Remove/exclude device (optional callback when controller is ready)
             await network.RemoveDeviceAsync(() => Console.WriteLine("Initiate exclusion on device (ie. press button according to manual."));
+
+            // Remove/exclude device (optional cancellation tokens)
+            // The cancellation token will stop the removal process immediately. This may leave the network in an unusable state which requires a reconnect.
+            // The abort token will stop the removal process nicely until a device is found. Once a device has been found then the token will do nothing.
+            var cancellationToken = new CancellationTokenSource().Token;
+            var abortRequestedToken = new CancellationTokenSource().Token;
+            await network.RemoveDeviceAsync(cancellationToken: cancellationToken, abortRequestedToken: abortRequestedToken);
         }
 
         public async Task GettingStarted()
@@ -89,16 +97,22 @@ namespace DeveloperTest
 
             // Add/include device (optional initialization for wake-up devices)
             (success, device) = await network.AddDeviceAsync(
-                                    () => Console.WriteLine("Initiate inclusion on device (ie. press button according to manual."),
-                                    async wakeUpDevice =>
+                                    wakeUpInitializationFunc: async wakeUpDevice =>
                                     {
                                         const int IntervalHours = 2;
                                         var wakeUpCapabilities = await wakeUpDevice.GetWakeUpIntervalCapabilitiesAsync();
                                         var intervalSeconds = TimeSpan.FromHours(IntervalHours).TotalSeconds
                                                               - TimeSpan.FromHours(IntervalHours).TotalSeconds
                                                               % wakeUpCapabilities.IntervalStep.TotalSeconds;
-                                        await wakeUpDevice.SetWakeUpIntervalAsync(TimeSpan.FromSeconds(intervalSeconds));
+                                        await wakeUpDevice.SetWakeUpIntervalAsync(TimeSpan.FromHours(intervalSeconds));
                                     });
+
+            // Add/include device (optional cancellation tokens)
+            // The cancellation token will stop the adding process immediately. This may leave the network in an unusable state which requires a reconnect.
+            // The abort token will stop the adding process nicely until a device is found. Once a device has been found then the token will do nothing.
+            var cancellationToken = new CancellationTokenSource().Token;
+            var abortRequestedToken = new CancellationTokenSource().Token;
+            (success, device) = await network.AddDeviceAsync(cancellationToken: cancellationToken, abortRequestedToken: abortRequestedToken);
         }
 
         public async Task Location()

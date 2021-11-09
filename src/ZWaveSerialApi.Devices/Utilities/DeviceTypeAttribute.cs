@@ -17,7 +17,7 @@ namespace ZWaveSerialApi.Devices.Utilities
             ushort manufacturerId,
             ushort productTypeId,
             ushort productId,
-            string region = "")
+            ZWaveRegion region = ZWaveRegion.Unknown)
         {
             DeviceType = new DeviceType(manufacturerId, productTypeId, productId);
         }

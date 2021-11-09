@@ -75,8 +75,8 @@ namespace ZWaveSerialApi
         public async Task<AddNodeToNetworkResponse> AddNodeToNetworkAsync(
             byte listeningNodeCount,
             Action? controllerReadyCallback = null,
-            CancellationToken abortRequestedToken = default,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            CancellationToken abortRequestedToken = default)
         {
             var callbackFuncId = GetNextCallbackFuncId();
 
@@ -87,7 +87,7 @@ namespace ZWaveSerialApi
                 _port,
                 callbackFuncId,
                 controllerReadyCallback);
-            var (success, nodeFunctionRx) = await addNodeSequence.ExecuteAsync(abortRequestedToken, cancellationToken).ConfigureAwait(false);
+            var (success, nodeFunctionRx) = await addNodeSequence.ExecuteAsync(cancellationToken, abortRequestedToken).ConfigureAwait(false);
 
             var addNodeToNetworkRx = (AddNodeToNetworkRx)nodeFunctionRx;
             return new AddNodeToNetworkResponse(
@@ -166,8 +166,8 @@ namespace ZWaveSerialApi
 
         public async Task<RemoveNodeFromNetworkResponse> RemoveNodeFromNetworkAsync(
             Action? controllerReadyCallback = null,
-            CancellationToken abortRequestedToken = default,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            CancellationToken abortRequestedToken = default)
         {
             var callbackFuncId = GetNextCallbackFuncId();
 
@@ -175,7 +175,7 @@ namespace ZWaveSerialApi
 
             try
             {
-                var (success, nodeFunctionRx) = await removeNodeSequence.ExecuteAsync(abortRequestedToken, cancellationToken).ConfigureAwait(false);
+                var (success, nodeFunctionRx) = await removeNodeSequence.ExecuteAsync(cancellationToken, abortRequestedToken).ConfigureAwait(false);
                 var removeNodeFromNetworkRx = (RemoveNodeFromNetworkRx)nodeFunctionRx;
                 return new RemoveNodeFromNetworkResponse(success, removeNodeFromNetworkRx.SourceNodeId);
             }

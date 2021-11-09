@@ -55,14 +55,15 @@ namespace ZWaveSerialApi.Devices
         public async Task<AddDeviceResult> AddDeviceAsync(
             Action? controllerReadyCallback = null,
             Func<WakeUpDevice, Task>? wakeUpInitializationFunc = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            CancellationToken abortRequestedToken = default)
         {
             var listeningNodesCount = (byte)_devices.Count(device => device.IsListening);
 
             _client.ReconnectOnFailure = false;
             try
             {
-                var result = await _client.AddNodeToNetworkAsync(listeningNodesCount, controllerReadyCallback, cancellationToken)
+                var result = await _client.AddNodeToNetworkAsync(listeningNodesCount, controllerReadyCallback, cancellationToken, abortRequestedToken)
                                           .ConfigureAwait(false);
                 if (!result.Success)
                 {
@@ -200,9 +201,13 @@ namespace ZWaveSerialApi.Devices
             }
         }
 
-        public async Task RemoveDeviceAsync(Action? controllerReadyCallback = null, CancellationToken cancellationToken = default)
+        public async Task RemoveDeviceAsync(
+            Action? controllerReadyCallback = null,
+            CancellationToken cancellationToken = default,
+            CancellationToken abortRequestedToken = default)
         {
-            var result = await _client.RemoveNodeFromNetworkAsync(controllerReadyCallback, cancellationToken).ConfigureAwait(false);
+            var result = await _client.RemoveNodeFromNetworkAsync(controllerReadyCallback, cancellationToken, abortRequestedToken)
+                                      .ConfigureAwait(false);
             if (!result.Success)
             {
                 // TODO: Check if result.NodeId is still in list, and if so call this method again
